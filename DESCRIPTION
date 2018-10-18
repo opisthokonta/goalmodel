@@ -1,0 +1,16 @@
+Package: goalmodel
+Type: Package
+Title: Prediction Models For Goals Scored
+Version: 0.1.0
+Author: Jonas Christoffer Lindstrøm
+Maintainer: Jonas Christoffer Lindstrøm <jonaslindstrom88@gmail.com>
+Description: The goalmodel package let you model the number of goals scored in sport games. The models are primarily aimed at modelling and predicting football (soccer) scores, but could also be applicable for similar sports, such as hockey and handball. 
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+    MASS,
+    engsoccerdata,
+    dplyr
+RoxygenNote: 6.1.0
+Suggests: testthat
