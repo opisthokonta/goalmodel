@@ -12,17 +12,17 @@ devtools::install_github("opisthokonta/goalmodel")
 The default model
 =================
 
-The goalmodel package models the goal scoring intensity so that it is a function of the two opposing teams attack and defense ratings. Let *λ*<sub>1</sub> and *λ*<sub>2</sub> be the goal scoring intensities for the two sides. The default model in the goalmodel package then models these as
+The goalmodel package models the goal scoring intensity so that it is a function of the two opposing teams attack and defense ratings. Let λ<sub>1</sub> and λ<sub>2</sub>) be the goal scoring intensities for the two sides. The default model in the goalmodel package then models these as
 
-*l**o**g*(*λ*<sub>1</sub>)=*μ* + *h**f**a* + *a**t**t**a**c**k*<sub>1</sub> − *d**e**f**e**n**s**e*<sub>2</sub>
+log(λ<sub>1</sub>)= μ + hfa+attack<sub>1</sub> − defense<sub>2</sub>
 
-*l**o**g*(*λ*<sub>2</sub>)=*μ* + *a**t**t**a**c**k*<sub>2</sub> − *d**e**f**e**n**s**e*<sub>1</sub>
+log(λ<sub>2</sub>)= μ + attack<sub>2</sub> − defense<sub>1</sub>
 
-where *μ* is the intercept (approximately the average number of goals scored) and *h**f**a* is the home field advantage given to team 1. By default the number of goals scored, *Y*<sub>1</sub> and *Y*<sub>2</sub> are distributed as
+where μ is the intercept (approximately the average number of goals scored) and hfa is the home field advantage given to team 1. By default the number of goals scored, Y<sub>1</sub> and Y<sub>2</sub> are distributed as
 
-*Y*<sub>1</sub> ∼ *P**o**i**s**s**o**n*(*λ*<sub>1</sub>)
+Y<sub>1</sub> ∼ Poisson(λ<sub>1</sub>)
 
-*Y*<sub>2</sub> ∼ *P**o**i**s**s**o**n*(*λ*<sub>2</sub>)
+Y<sub>2</sub> ∼ Poisson(λ<sub>2</sub>)
 
 The default model can be modified in numerous ways as detailed in this vignette.
 
@@ -52,7 +52,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 1.00 seconds
+    ## Model sucsessfully fitted in 1.06 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -93,7 +93,7 @@ summary(gm_res)
 The Dixon-Coles model
 =====================
 
-The model in the paper by Dixon and Coles (1997??) they introduce a model modifies the probabilities for low scores, where each team scores at most 1 goal each. The amount of adjustment is determined by the parameter *ρ* (rho), which can be estimated from the data. The Dixon-Coles model can be fitted by setting the dc argument to TRUE.
+The model in the paper by Dixon and Coles (1997) they introduce a model modifies the probabilities for low scores, where each team scores at most 1 goal each. The amount of adjustment is determined by the parameter ρ (rho), which can be estimated from the data. The Dixon-Coles model can be fitted by setting the dc argument to TRUE.
 
 ``` r
 # Fit the Dixon-Coles model.
@@ -105,7 +105,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.15 seconds
+    ## Model sucsessfully fitted in 1.19 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -144,22 +144,22 @@ summary(gm_res_dc)
     ## Home field advantage       0.27 
     ## Dixon-Coles adj. (rho)    -0.13
 
-Notice that the estimated *ρ* parameter is listed together with the other parameters.
+Notice that the estimated ρ parameter is listed together with the other parameters.
 
 The Rue-Salvesen adjustment
 ===========================
 
-In a paper by Rue and Salvesen (2001) they introduce an adjustment to the goals scoring intesities *λ*<sub>1</sub> and *λ*<sub>2</sub>:
+In a paper by Rue and Salvesen (2001) they introduce an adjustment to the goals scoring intesities λ<sub>1</sub> and λ<sub>2</sub>:
 
-*l**o**g*(*λ*<sub>1</sub><sup>*a**d**j*</sup>)=*l**o**g*(*λ*<sub>1</sub>)−*γ**Δ*<sub>1, 2</sub>
+log(λ<sub>1</sub><sup>adj</sup>)=log(λ<sub>1</sub>)−γΔ<sub>1,2</sub>
 
-*l**o**g*(*λ*<sub>2</sub><sup>*a**d**j*</sup>)=*l**o**g*(*λ*<sub>2</sub>)+*γ**Δ*<sub>1, 2</sub>
+log(λ<sub>2</sub><sup>adj</sup>)=log(λ<sub>2</sub>)+γΔ<sub>1,2</sub>
 
 where
 
-*Δ*<sub>1, 2</sub> = (*a**t**t**a**c**k*<sub>1</sub> + *d**e**f**e**n**s**e*<sub>1</sub> − *a**t**t**a**c**k*<sub>2</sub> − *d**e**f**e**n**s**e*<sub>2</sub>)/2
+Δ<sub>1,2</sub> = (attack<sub>1</sub>+defense<sub>1</sub>−attack<sub>2</sub>−defense<sub>2</sub>)/2
 
-and *γ* is a parameter that modifies the amount of adjustment. This model can be fitted by setting the rs argument to TRUE.
+and γ is a parameter that modifies the amount of adjustment. This model can be fitted by setting the rs argument to TRUE.
 
 ``` r
 # Fit the model with the Rue-Salvesen adjustment.
@@ -171,7 +171,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 1.42 seconds
+    ## Model sucsessfully fitted in 1.37 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -346,7 +346,7 @@ Modifying parameters
 
 In addition to fixing parameters before the model is fit, you can also manually set the parameters after the model is fitted. This can be useful if you believe the attack or defence paramters given by the model is inacurate because you have some additional information that is not captured in the data.
 
-Modifying the paramters can also be useful due to the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting *γ* to 0.1 is a good choise. Here is how this can be done:
+Modifying the paramters can also be useful due to the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting γ to 0.1 is a good choise. Here is how this can be done:
 
 ``` r
 # Copy the default model.
