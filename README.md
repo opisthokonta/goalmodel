@@ -14,9 +14,9 @@ The default model
 
 The goalmodel package models the goal scoring intensity so that it is a function of the two opposing teams attack and defense ratings. Let λ<sub>1</sub> and λ<sub>2</sub>) be the goal scoring intensities for the two sides. The default model in the goalmodel package then models these as
 
-log(λ<sub>1</sub>)= μ + hfa+attack<sub>1</sub> − defense<sub>2</sub>
+log(λ<sub>1</sub>) = μ + hfa + attack<sub>1</sub> − defense<sub>2</sub>
 
-log(λ<sub>2</sub>)= μ + attack<sub>2</sub> − defense<sub>1</sub>
+log(λ<sub>2</sub>) = μ + attack<sub>2</sub> − defense<sub>1</sub>
 
 where μ is the intercept (approximately the average number of goals scored) and hfa is the home field advantage given to team 1. By default the number of goals scored, Y<sub>1</sub> and Y<sub>2</sub> are distributed as
 
@@ -52,7 +52,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 1.06 seconds
+    ## Model sucsessfully fitted in 1.01 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -105,7 +105,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.19 seconds
+    ## Model sucsessfully fitted in 1.14 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -151,9 +151,9 @@ The Rue-Salvesen adjustment
 
 In a paper by Rue and Salvesen (2001) they introduce an adjustment to the goals scoring intesities λ<sub>1</sub> and λ<sub>2</sub>:
 
-log(λ<sub>1</sub><sup>adj</sup>)=log(λ<sub>1</sub>)−γΔ<sub>1,2</sub>
+log(λ<sub>1</sub><sup>adj</sup>) = log(λ<sub>1</sub>) − γΔ<sub>1,2</sub>
 
-log(λ<sub>2</sub><sup>adj</sup>)=log(λ<sub>2</sub>)+γΔ<sub>1,2</sub>
+log(λ<sub>2</sub><sup>adj</sup>) = log(λ<sub>2</sub>) + γΔ<sub>1,2</sub>
 
 where
 
@@ -341,12 +341,117 @@ gm_res_dc$parameters$rho
 
     ## [1] -0.1334634
 
+Offset - Varying playing time
+=============================
+
+Sometimes the playing time can be extended to extra time. In football this usually happens when there is a draw in a knock-out tournament, where an additional 30 minutes is added. To handle this, we must add what is called an offset to the model. You can read more about the details on [wikipedia](https://en.wikipedia.org/wiki/Poisson_regression#%22Exposure%22_and_offset).
+
+There is no offset option in the goalmodel package, but we can add it as an extra covariate, and fix the parameter for that covariate to be 1. In the example below we add a game from the 2011-12 FA Cup to the data set which was extended to extra time. Then we create the offset variable and fit the model with the fixed parameter. Note that the offset variable must be log-transformed. In this example, the extra game that is added is the only game in the data set where Middlesbrough is playing, so the estimates will be a bit unstable. Also note that the number of minutes played is divided by 90, the ordinary playing time, otherwise the model fitting tend to get unstable.
+
+``` r
+# Get matches from the FA cup that was extended to extra time.
+facup %>% 
+  filter(Season == 2011,
+         round >= 4, 
+         aet == 'yes') %>% 
+  select(Date, home, visitor, hgoal, vgoal, aet) %>% 
+  mutate(Date = as.Date(Date)) -> facup_2011
+
+facup_2011
+```
+
+    ##         Date          home    visitor hgoal vgoal aet
+    ## 1 2012-02-08 Middlesbrough Sunderland     1     2 yes
+
+``` r
+# Merge the additional game with the origianl data frame.
+england_2011 %>% 
+  bind_rows(facup_2011) %>% 
+  mutate(aet = replace(aet, is.na(aet), 'no')) -> england_2011_2
+
+# Create empty matrix for additional covariates
+xx_offset <- matrix(nrow=nrow(england_2011_2))
+colnames(xx_offset) <- 'Offset'
+
+# Add data
+xx_offset[,'Offset'] <- 90/90 # Per 90 minutes
+
+# Extra time is 30 minutes added.
+xx_offset[england_2011_2$aet == 'yes','Offset'] <- (90+30)/90
+
+# Offset must be log-transformed.
+xx_offset <- log(xx_offset)
+
+# Take a look.
+tail(xx_offset)
+```
+
+    ##           Offset
+    ## [376,] 0.0000000
+    ## [377,] 0.0000000
+    ## [378,] 0.0000000
+    ## [379,] 0.0000000
+    ## [380,] 0.0000000
+    ## [381,] 0.2876821
+
+``` r
+# fit the model
+gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_2$vgoal, 
+                           team1 = england_2011_2$home, team2=england_2011_2$visitor,
+                          # The offset must be added to both x1 and x2.
+                          x1 = xx_offset, x2 = xx_offset,
+                          # The offset parameter must be fixed to 1.
+                          fixed_params = list(beta = c('Offset' = 1)))
+
+summary(gm_res_offset)
+```
+
+    ## Model sucsessfully fitted in 1.20 seconds
+    ## 
+    ## Number of matches           381 
+    ## Number of teams              21 
+    ## 
+    ## Model                     Poisson 
+    ## 
+    ## Log Likelihood            -1091.30 
+    ## AIC                        2268.60 
+    ## R-squared                  0.18 
+    ## Parameters (estimated)       43 
+    ## Parameters (fixed)            1 
+    ## 
+    ## Team                      Attack   Defense
+    ## Arsenal                    0.34     0.05 
+    ## Aston Villa               -0.35     0.01 
+    ## Blackburn Rovers          -0.07    -0.39 
+    ## Bolton Wanderers          -0.11    -0.38 
+    ## Chelsea                    0.20     0.12 
+    ## Everton                   -0.06     0.28 
+    ## Fulham                    -0.10     0.03 
+    ## Liverpool                 -0.13     0.28 
+    ## Manchester City            0.55     0.55 
+    ## Manchester United          0.51     0.43 
+    ## Middlesbrough             -0.58    -0.40 
+    ## Newcastle United           0.06     0.03 
+    ## Norwich City               0.00    -0.23 
+    ## Queens Park Rangers       -0.19    -0.22 
+    ## Stoke City                -0.38     0.01 
+    ## Sunderland                -0.16     0.14 
+    ## Swansea City              -0.18     0.04 
+    ## Tottenham Hotspur          0.21     0.23 
+    ## West Bromwich Albion      -0.16     0.02 
+    ## Wigan Athletic            -0.22    -0.16 
+    ## Wolverhampton Wanderers   -0.25    -0.43 
+    ## -------
+    ## Intercept                  0.17 
+    ## Home field advantage       0.27 
+    ## Offset                     1.00
+
 Modifying parameters
 ====================
 
 In addition to fixing parameters before the model is fit, you can also manually set the parameters after the model is fitted. This can be useful if you believe the attack or defence paramters given by the model is inacurate because you have some additional information that is not captured in the data.
 
-Modifying the paramters can also be useful due to the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting γ to 0.1 is a good choise. Here is how this can be done:
+Modifying the paramters can also be useful due to the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting γ to 0.1 is a good choice. Here is how this can be done:
 
 ``` r
 # Copy the default model.
