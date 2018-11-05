@@ -213,6 +213,8 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' ratings for all teams, but other covariates can be included, as well as other adjustments. The underlying statistical model
 #' can be either a Poisson or a Negative Binomial model.
 #'
+#' Fixed parameters must be given as a list that is similar as the one returned from this function. See the 'value' section.
+#'
 #' @param goals1 Numeric, non-negative integer. The number of goals scored by team 1.
 #' @param goals2 Numeric, non-negative integer. The number of goals scored by team 2.
 #' @param team1 Vector of team names.
@@ -227,7 +229,6 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' @param model String indicating whether the goals follow a 'poisson' model (default) or a 'negbin' model.
 #' @param optim_method String indicating which optimization method to use. See \code{\link{optim}} for more details.
 #'
-#' Fixed parameters must be given as a list that is similar as the one returned from this function. See the 'value' section.
 #'
 #' @return
 #'  A list of class 'goalmodel'. The list contains the following components:
