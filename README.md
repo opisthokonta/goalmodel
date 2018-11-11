@@ -171,7 +171,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 1.37 seconds
+    ## Model sucsessfully fitted in 1.31 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -406,7 +406,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.20 seconds
+    ## Model sucsessfully fitted in 1.17 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -477,6 +477,11 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
     ## 1           Arsenal    Fulham 0.6045881 0.2084048 0.1870071
     ## 2 Manchester United   Chelsea 0.6538287 0.1918135 0.1543579
     ## 3  Bolton Wanderers Liverpool 0.2780517 0.2603784 0.4615699
+
+Miscellaneous
+=============
+
+It is also possible to use model = 'gaussian' to fit models using the Gaussian (or normal) distribution. This option is intended to be used when the scores are decimal numbers. This could be useful if instead of actual goals scored, you wanted to fit a model to expected goals. You can't combine this with the Dixon-Coles adjustment, except perhaps using a two step procedure, first estimating the attack and defence parameters using expected goals, then estimating the Dixon-Coles adjustment using actual goals. If you use a Gaussian model to make predictions, the Poisson distribution will be used, and a warning will be given.
 
 Other packages
 ==============

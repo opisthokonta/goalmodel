@@ -282,6 +282,12 @@ predict_result(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
+# Miscellaneous
+It is also possible to use model = 'gaussian' to fit models using the Gaussian (or normal) distribution. This option is intended to be used when the scores are decimal numbers. This could be useful if instead of actual goals scored, you wanted to fit a model to expected goals. You can't combine this with the Dixon-Coles adjustment, except perhaps using a two step procedure, first estimating the attack and defence parameters using expected goals, then estimating the Dixon-Coles adjustment using actual goals. If you use a Gaussian model to make predictions, the Poisson distribution will be used, and a warning will be given. 
+
+
+
+
 # Other packages
 There are some other packages out there that has similar functionality as this package. The [regista](https://github.com/Torvaney/regista) package implements a more general interface to fit the Dixon-Coles model. The [fbRanks](https://cran.r-project.org/web/packages/fbRanks/index.html) package implements only the Dixon-Coles time weighting functionality, but has a lot of other features. 
 
