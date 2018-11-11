@@ -25,6 +25,8 @@ summary.goalmodel <- function(object, ...){
     cat(sprintf('%-25.25s %s \n', 'Model', 'Poisson'))
   } else if (object$model == 'negbin'){
     cat(sprintf('%-25.25s %s \n', 'Model', 'Neg. Binom.'))
+  } else if (object$model == 'gaussian'){
+    cat(sprintf('%-25.25s %s \n', 'Model', 'Gaussian'))
   }
 
   cat('\n')
@@ -60,6 +62,10 @@ summary.goalmodel <- function(object, ...){
 
   if ('dispersion' %in% names(object$parameters)){
     cat(sprintf('%-25.25s % 2.2f \n', 'Dispersion (Neg. Binom.)', object$parameters$dispersion))
+  }
+
+  if ('sigma' %in% names(object$parameters)){
+    cat(sprintf('%-25.25s % 2.2f \n', 'Sigma (Gaussian)', object$parameters$sigma))
   }
 
   if ('gamma' %in% names(object$parameters)){

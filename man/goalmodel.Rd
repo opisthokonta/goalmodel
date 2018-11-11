@@ -31,11 +31,9 @@ goalmodel(goals1, goals2, team1, team2, x1 = NULL, x2 = NULL,
 
 \item{weights}{Numeric vector of weigths that determine the influence of each match on the final parameter estimates.}
 
-\item{model}{String indicating whether the goals follow a 'poisson' model (default) or a 'negbin' model.}
+\item{model}{String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.}
 
-\item{optim_method}{String indicating which optimization method to use. See \code{\link{optim}} for more details.
-
-Fixed parameters must be given as a list that is similar as the one returned from this function. See the 'value' section.}
+\item{optim_method}{String indicating which optimization method to use. See \code{\link{optim}} for more details.}
 }
 \value{
 A list of class 'goalmodel'. The list contains the following components:
@@ -67,12 +65,17 @@ The following parameter components are optional, and depends on what kind of mod
 \item rho - If dc=TRUE, an unnamd length 1 numeric with the Dixon-Coles adjustment.
 \item gamma - If rs=TRUE, an unnamd length 1 numeric with the Rue-Salvesen adjustment.
 \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
+\item dispersion - The dispersion paramter in the Negative Binomial model.
+\item sigma - The standard deviation in a gaussian model.
 }
 }
 \description{
 \code{goalmodel} is used to fit models of goals scored in sports competitions. At a minimum this function estimates 'attack' and 'defence'
 ratings for all teams, but other covariates can be included, as well as other adjustments. The underlying statistical model
 can be either a Poisson or a Negative Binomial model.
+}
+\details{
+Fixed parameters must be given as a list that is similar as the one returned from this function. See the 'value' section.
 }
 \examples{
 

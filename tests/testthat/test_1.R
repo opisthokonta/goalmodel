@@ -1,7 +1,5 @@
 
 
-
-
 library(engsoccerdata)
 library(dplyr)
 
@@ -64,6 +62,22 @@ test_that("Fitting Dixon-Coles model - 2step", {
   expect_equal(gm_res_dc_2s$parameters$rho == gm_res_dc$parameters$rho, FALSE)
 })
 
+
+
+
+context("Model fitting - Gaussian")
+
+# Fit a Gaussian model.
+gm_res_gaussian <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                          team1 = england_2011$home, team2=england_2011$visitor, model='gaussian')
+
+test_that("Fitting Gaussian model", {
+  expect_equal(class(gm_res_gaussian), 'goalmodel')
+  expect_equal(gm_res_gaussian$parameters$dispersion, NULL)
+  expect_equal(is.numeric(gm_res_gaussian$parameters$sigma), TRUE)
+  expect_equal(gm_res_gaussian$parameters$gamma, NULL)
+  expect_equal(names(gm_res_gaussian$parameters$attack), names(gm_res_gaussian$parameters$defense))
+})
 
 context("Making predictions")
 

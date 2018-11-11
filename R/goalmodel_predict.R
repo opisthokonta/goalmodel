@@ -51,13 +51,17 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
 
+  if (model_fit$model == 'gaussian'){
+    warning('Model is Gaussian. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
+  }
+
   ## predict the expected goals.
   expg <- predict_expg(model_fit, team1 = team1, team2 = team2,
                        x1 = x1, x2 = x2, return_df = FALSE)
 
   # find the upper limit of where to evaluate the probability function.
   upper_prob <- 0.999
-  if (model_fit$model == 'poisson'){
+  if (model_fit$model %in% c('poisson', 'gaussian')){
     maxgoal <- stats::qpois(upper_prob, lambda=model_fit$maxgoal)
   }
   else if (model_fit$model == 'negbin'){
@@ -72,7 +76,7 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
   }
 
   for (ii in 1:length(team1)){
-    if (model_fit$model == 'poisson'){
+    if (model_fit$model %in% c('poisson', 'gaussian')){
       res_tmp <- stats::dpois(0:maxgoal, expg$expg1[ii]) %*% t(stats::dpois(0:maxgoal, expg$expg2[ii]))
     } else if (model_fit$model == 'negbin'){
       res_tmp <- stats::dnbinom(0:maxgoal, mu = expg$expg1[ii], size = 1 / model_fit$parameters$dispersion) %*%
@@ -148,6 +152,9 @@ predict_ou <- function(model_fit, team1, team2,
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
 
+  if (model_fit$model == 'gaussian'){
+    warning('Model is Gaussian. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
+  }
 
   team1 <- as.character(team1)
   team2 <- as.character(team2)
@@ -158,7 +165,7 @@ predict_ou <- function(model_fit, team1, team2,
 
   ee <- lambda_pred(model_fit$parameters, team1, team2, x1, x2)
 
-  if (model_fit$model == 'poisson'){
+  if (model_fit$model %in% c('poisson', 'gaussian')){
     exp_goal_tot <- ee$expg1 + ee$expg2
     prob_under <- stats::ppois(floor(ou), lambda = exp_goal_tot)
     prob_over <- 1 - prob_under

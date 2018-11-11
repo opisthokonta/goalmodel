@@ -178,6 +178,9 @@ negloglik <- function(params, goals1, goals2, team1, team2,
     dispersion_tmp <- 1 / exp(plist$dispersion)
     log_lik_1 <- stats::dnbinom(goals1, mu = expg$expg1, size = dispersion_tmp, log=TRUE)
     log_lik_2 <- stats::dnbinom(goals2, mu = expg$expg2, size = dispersion_tmp, log=TRUE)
+  } else if (model == 'gaussian'){
+    log_lik_1 <- stats::dnorm(goals1, mean = expg$expg1, sd = exp(plist$sigma), log=TRUE)
+    log_lik_2 <- stats::dnorm(goals2, mean = expg$expg2, sd = exp(plist$sigma), log=TRUE)
   }
 
   log_lik_terms <- log_lik_1 + log_lik_2
@@ -226,7 +229,7 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' @param rs Logical (FALSE by default). If TRUE an adjustment for teams to over and under estimate the opponent.
 #' @param fixed_params A list with parameters that should be kept constant while the other parameters are estimated from data.
 #' @param weights Numeric vector of weigths that determine the influence of each match on the final parameter estimates.
-#' @param model String indicating whether the goals follow a 'poisson' model (default) or a 'negbin' model.
+#' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.
 #' @param optim_method String indicating which optimization method to use. See \code{\link{optim}} for more details.
 #'
 #'
@@ -261,6 +264,8 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' \item rho - If dc=TRUE, an unnamd length 1 numeric with the Dixon-Coles adjustment.
 #' \item gamma - If rs=TRUE, an unnamd length 1 numeric with the Rue-Salvesen adjustment.
 #' \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
+#' \item dispersion - The dispersion paramter in the Negative Binomial model.
+#' \item sigma - The standard deviation in a gaussian model.
 #' }
 #'
 #' @examples
@@ -279,7 +284,13 @@ goalmodel <- function(goals1, goals2, team1, team2,
             length(team1) == length(team2),
             length(goals1) >= 1,
             is.numeric(goals1), is.numeric(goals2),
-            model %in% c('poisson', 'negbin')) # only poisson model for now.
+            model %in% c('poisson', 'negbin', 'gaussian'))
+
+  if (model == 'gaussian'){
+    if (dc){
+      stop('Dixon-Coles adjustment does not work with a Gaussian model.')
+    }
+  }
 
   if (!is.null(weights)){
     stopifnot(is.numeric(weights),
@@ -313,6 +324,11 @@ goalmodel <- function(goals1, goals2, team1, team2,
   if (model == 'negbin'){
     # on log scale during estimation.
     parameter_list$dispersion <- -10
+  }
+
+  if (model == 'gaussian'){
+    # on log scale during estimation.
+    parameter_list$sigma <- log(stats::sd(c(goals1,goals2)))
   }
 
   # Parameters for additional covariates.
@@ -354,6 +370,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
       if (model == 'poisson'){
         warning('Dispersion parameter is fixed, but model is Poisson. The dispersion parameter will not have an effect.')
+      } else if (model == 'gaussian'){
+        warning('Dispersion parameter is fixed, but model is Gaussian The dispersion parameter will not have an effect. The related parameter for the Gaussian model is sigma.')
       }
     }
 
@@ -413,6 +431,21 @@ goalmodel <- function(goals1, goals2, team1, team2,
       loglikelihood_saturated <- sum(stats::dnbinom(all_goals, mu = all_goals, size=Inf, log=TRUE)*rep(weights,2))
       loglikelihood_null <- sum(stats::dnbinom(all_goals, mu = mean_goals, size=dispersion0_tmp, log=TRUE)*rep(weights,2))
     }
+  } else if (model == 'gaussian'){
+    #TODO
+    all_goals <- c(goals1, goals2)
+    if (is.null(weights)){
+      mean_goals <- mean(all_goals)
+      sigma0_tmp <- stats::sd(all_goals)
+      loglikelihood_saturated <- NA
+      loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE))
+    } else {
+      mean_goals <- stats::weighted.mean(all_goals, w = rep(weights, 2))
+      sigma0_tmp <- sqrt(sum(rep(weights, 2) * (all_goals - mean_goals)^2))
+      loglikelihood_saturated <- NA
+      loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
+    }
+
   }
 
   deviance <- 2 * (loglikelihood_saturated - loglikelihood)
@@ -432,6 +465,11 @@ goalmodel <- function(goals1, goals2, team1, team2,
   # rescale dispersion
   if ('dispersion' %in% names(parameter_list_all)){
     parameter_list_all$dispersion <- exp(parameter_list_all$dispersion)
+  }
+
+  # rescale sigma
+  if ('sigma' %in% names(parameter_list_all)){
+    parameter_list_all$sigma <- exp(parameter_list_all$sigma)
   }
 
   # maxgoal. Useful for later predictions.
