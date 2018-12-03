@@ -6,7 +6,8 @@
 \usage{
 goalmodel(goals1, goals2, team1, team2, x1 = NULL, x2 = NULL,
   hfa = TRUE, dc = FALSE, rs = FALSE, fixed_params = NULL,
-  weights = NULL, model = "poisson", optim_method = "BFGS")
+  weights = NULL, model = "poisson", optim_method = "BFGS",
+  initvals = NULL)
 }
 \arguments{
 \item{goals1}{Numeric, non-negative integer. The number of goals scored by team 1.}
@@ -34,6 +35,8 @@ goalmodel(goals1, goals2, team1, team2, x1 = NULL, x2 = NULL,
 \item{model}{String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.}
 
 \item{optim_method}{String indicating which optimization method to use. See \code{\link{optim}} for more details.}
+
+\item{initvals}{Optional list of starting values for the parameters.}
 }
 \value{
 A list of class 'goalmodel'. The list contains the following components:

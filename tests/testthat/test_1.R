@@ -79,6 +79,47 @@ test_that("Fitting Gaussian model", {
   expect_equal(names(gm_res_gaussian$parameters$attack), names(gm_res_gaussian$parameters$defense))
 })
 
+
+
+context("Model fitting - Manually specified initial values")
+
+my_inits <- list('defense' = c('Arsenal' = 0.8, 'Chelsea' = 0.23,
+                               # Not relevant parameter, will be ignored, without warning.
+                               'TeamName' = 11),
+                 'hfa' = 0.31)
+
+gm_res_inits <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                             team1 = england_2011$home, team2=england_2011$visitor,
+                          initvals = my_inits)
+
+
+test_that("Model fit with manual inits.", {
+  expect_equal(class(gm_res_inits), 'goalmodel')
+  expect_equal(gm_res_inits$parameters$dispersion, NULL)
+  expect_equal(gm_res_inits$parameters$sigma, NULL)
+  expect_equal(gm_res_inits$parameters$gamma, NULL)
+  expect_equal(names(gm_res_inits$parameters$attack), names(gm_res_inits$parameters$defense))
+  expect_equal(abs(gm_res$loglikelihood - gm_res_inits$loglikelihood) < 0.01, TRUE)
+})
+
+
+
+gm_res_inits2 <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                          team1 = england_2011$home, team2=england_2011$visitor,
+                          initvals = gm_res$parameters)
+
+test_that("Model fit with manual inits, 2 ", {
+  expect_equal(class(gm_res_inits2), 'goalmodel')
+  expect_equal(gm_res_inits2$parameters$dispersion, NULL)
+  expect_equal(gm_res_inits2$parameters$sigma, NULL)
+  expect_equal(gm_res_inits2$parameters$gamma, NULL)
+  expect_equal(names(gm_res_inits2$parameters$attack), names(gm_res_inits2$parameters$defense))
+  expect_equal(abs(gm_res$loglikelihood - gm_res_inits2$loglikelihood) < 0.01, TRUE)
+})
+
+
+
+
 context("Making predictions")
 
 to_predict1 <- c('Arsenal', 'Manchester United')

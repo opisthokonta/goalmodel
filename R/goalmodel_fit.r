@@ -3,7 +3,8 @@
 
 # Find initial values
 initial_values <- function(goals1, goals2, team1, team2, all_teams,
-                           offset = NULL, weights=NULL){
+                           offset = NULL, weights=NULL,
+                           initvals=NULL){
   # Compute initial values for the attack and defence effects.
 
   n_teams <- length(all_teams)
@@ -32,6 +33,28 @@ initial_values <- function(goals1, goals2, team1, team2, all_teams,
     parameter_list$defense[all_teams[tt]] <- (avg - avg_conceded)/2.5
   }
 
+  # If initial values is supplied by the user, modify
+  # the parameter_list accordingly.
+  if (!is.null(initvals)){
+    stopifnot(is.list(initvals))
+
+    if ('attack' %in% initvals){
+      # Attack parameters for teams not in the data set is ignored.
+      inamesa <- intersect(names(initvals$attack), names(parameter_list$attack))
+      parameter_list$attack[inamesa] <- initvals$attack[inamesa]
+    }
+
+    if ('defense' %in% initvals){
+      # Defense parameters for teams not in the data set is ignored.
+      inamesd <- intersect(names(initvals$defense), names(parameter_list$defense))
+      parameter_list$defense[inamesd] <- initvals$defense[inamesd]
+    }
+
+  }
+
+  # The first defense parameter is removed. This is because
+  # the sum-to-zero constraint that infers this parameter
+  # from the rest.
   parameter_list$defense <- parameter_list$defense[-1]
   parameter_list$intercept <- avg
 
@@ -145,27 +168,63 @@ lambda_pred <- function(plist, team1, team2, x1, x2){
 }
 
 
+# Check that a list of parameters has correct layout.
+# Returns TRUE if it is OK.
+check_plist <- function(plist, all_teams = NULL){
+
+  t1 <- is.list(plist)
+
+  plist_names <- names(plist)
+
+  t2 <- all(plist_names %in% c('attack', 'defense', 'beta', 'intercept',
+                               'sigma', 'rho', 'dispersion', 'gamma', 'hfa'))
+
+  t3 <- all(sapply(plist, is.numeric))
+
+  # check the length of the vectors in the list.
+  t4 <- TRUE
+  for (ii in 1:length(plist_names)){
+    if (plist_names[ii] %in% c('intercept', 'sigma', 'dispersion', 'rho', 'gamma', 'hfa')){
+      t4 <- t4 & length(plist[[plist_names[ii]]] == 1)
+    }
+  }
+
+  t5 <- TRUE
+  if (!is.null(all_teams)){
+    if ('attack' %in% plist_names){
+      t5 <- t5 & all(names(plist$attack) %in% all_teams)
+    }
+
+    if ('defense' %in% plist_names){
+      t5 <- t5 & all(names(plist$defense) %in% all_teams)
+    }
+
+  }
+
+
+  out <- all(t1, t2, t3, t4)
+  return(out)
+}
 
 # The negative log-likelihood function for the goalmodel
 negloglik <- function(params, goals1, goals2, team1, team2,
                       x1, x2, hfa, model, param_skeleton,
+                      all_teams,
                       weights=NULL, fixed_params=NULL){
 
   # relist, to make things easier.
   plist <- utils::relist(params, param_skeleton)
 
-
   # Add sum to zero constraint on defense parameters.
-  # The defense paramter for the first team is computed from the rest.
+  # The defense parameter for the first team is computed from the rest.
   plist$defense <- c(sum(plist$defense)*-1, plist$defense)
-  names(plist$defense)[1] <- names(plist$attack[1]) # add name to first element.
+  names(plist$defense)[1] <- all_teams[1] # add name to first element.
 
   if (!is.null(fixed_params)){
     stopifnot(is.list(fixed_params))
     # Add the fixed parameters to the parameter list.
     plist <- utils::modifyList(plist, fixed_params)
   }
-
 
   ## Expected goals (poisson & nbin parameters)
   expg <- lambda_pred(plist, team1, team2, x1, x2)
@@ -210,6 +269,9 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 
 }
 
+
+
+
 #' Fitting models for goals
 #'
 #' \code{goalmodel} is used to fit models of goals scored in sports competitions. At a minimum this function estimates 'attack' and 'defence'
@@ -231,6 +293,7 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' @param weights Numeric vector of weigths that determine the influence of each match on the final parameter estimates.
 #' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.
 #' @param optim_method String indicating which optimization method to use. See \code{\link{optim}} for more details.
+#' @param initvals Optional list of starting values for the parameters.
 #'
 #'
 #' @return
@@ -277,7 +340,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
                       x1 = NULL, x2=NULL,
                       hfa=TRUE, dc=FALSE, rs=FALSE,
                       fixed_params = NULL, weights=NULL,
-                      model = 'poisson', optim_method='BFGS'){
+                      model = 'poisson', optim_method='BFGS',
+                      initvals = NULL){
 
   stopifnot(length(goals1)==length(goals2),
             length(goals2) == length(team1),
@@ -307,7 +371,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
   parameter_list <- initial_values(goals1 = goals1, goals2 = goals2,
                                    team1 = team1, team2=team2,
-                                   all_teams = all_teams)
+                                   all_teams = all_teams,
+                                   initvals = initvals)
 
   if (hfa){
     parameter_list$hfa <- 0.1
@@ -328,8 +393,9 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
   if (model == 'gaussian'){
     # on log scale during estimation.
-    parameter_list$sigma <- log(stats::sd(c(goals1,goals2)))
+    parameter_list$sigma <- log(stats::sd(c(goals1,goals2))*1.5)
   }
+
 
   # Parameters for additional covariates.
   additional_covariates <- c() # the variable names.
@@ -357,8 +423,71 @@ goalmodel <- function(goals1, goals2, team1, team2,
     names(parameter_list$beta) <- additional_covariates
   }
 
+
+  # user supplied initial values.
+  if (!is.null(initvals)){
+
+    # Uses supplied values for attack and defense parameters
+    # are processed in the initial_values function.
+
+    if ('hfa' %in% names(initvals)){
+      if (hfa){
+        parameter_list$hfa <- initvals$hfa
+      } else {
+        warning('Initial values for hfa is supplied, but hfa=FALSE. Will be ignored.')
+      }
+    }
+
+    if ('rho' %in% names(initvals)){
+      if (dc){
+        parameter_list$rho <- initvals$rho
+      } else {
+        warning('Initial values for rho is supplied, but dc=FALSE. Will be ignored.')
+      }
+    }
+
+    if ('gamma' %in% names(initvals)){
+      if (rs){
+        parameter_list$gamma <- initvals$gamma
+      } else {
+        warning('Initial values for gamma is supplied, but rs=FALSE. Will be ignored.')
+      }
+    }
+
+    if ('dispersion' %in% names(initvals)){
+      if (model == 'negbin'){
+        parameter_list$dispersion <- initvals$dispersion
+      } else {
+        warning('Initial values for dispersion is supplied, but model is not negbin. Will be ignored.')
+      }
+    }
+
+    if ('sigma' %in% names(initvals)){
+      if (model == 'gaussian'){
+        parameter_list$sigma <- initvals$sigma
+      } else {
+        warning('Initial values for sigma is supplied, but model is not gaussian. Will be ignored.')
+      }
+    }
+
+    if ('beta' %in% names(initvals)){
+      if (length(additional_covariates) != 0){
+        inamesb <- intersect(names(initvals$beta), names(parameter_list$beta))
+        parameter_list$beta[inamesb] <- initvals$beta[inamesb]
+      }
+    }
+
+    # Do some checks to make sure the parameter list is OK.
+    check_plist(parameter_list, all_teams = all_teams)
+
+  }
+
+
+
   if (!is.null(fixed_params)){
+
     stopifnot(is.list(fixed_params))
+
     # remove fixed parameters from the parameter_list, since they are
     # not optimized over.
     parameter_list[names(fixed_params)] <- NULL
@@ -386,6 +515,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
                      x1 = x1, x2 = x2,
                      fixed_params=fixed_params,
                      model = model,
+                     all_teams = all_teams,
                      param_skeleton=parameter_list,
                      weights = weights,
                      method = optim_method)
@@ -400,7 +530,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
   # relist the parameter vector, calculate the missing defense parameter.
   parameter_list_est <- utils::relist(optim_res$par, parameter_list)
   parameter_list_est$defense <- c(sum(parameter_list_est$defense)*-1, parameter_list_est$defense)
-  names(parameter_list_est$defense)[1] <- names(parameter_list_est$attack[1])
+  names(parameter_list_est$defense)[1] <- all_teams[1]
 
   loglikelihood <- optim_res$value*-1
   npar_est <- length(optim_res$par)
