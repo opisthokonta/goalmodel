@@ -56,6 +56,7 @@ initial_values <- function(goals1, goals2, team1, team2, all_teams,
   # the sum-to-zero constraint that infers this parameter
   # from the rest.
   parameter_list$defense <- parameter_list$defense[-1]
+  parameter_list$attack <- parameter_list$attack[-1]
   parameter_list$intercept <- avg
 
   if (!is.null(offset)){
@@ -219,6 +220,9 @@ negloglik <- function(params, goals1, goals2, team1, team2,
   # The defense parameter for the first team is computed from the rest.
   plist$defense <- c(sum(plist$defense)*-1, plist$defense)
   names(plist$defense)[1] <- all_teams[1] # add name to first element.
+
+  plist$attack <- c(sum(plist$attack)*-1, plist$attack)
+  names(plist$attack)[1] <- all_teams[1] # add name to first element.
 
   if (!is.null(fixed_params)){
     stopifnot(is.list(fixed_params))
@@ -518,7 +522,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
                      all_teams = all_teams,
                      param_skeleton=parameter_list,
                      weights = weights,
-                     method = optim_method)
+                     method = optim_method,
+                     control = list(maxit = 150))
 
   end_time <- Sys.time()
   est_time <- difftime(end_time, start_time, units='secs')
@@ -531,6 +536,9 @@ goalmodel <- function(goals1, goals2, team1, team2,
   parameter_list_est <- utils::relist(optim_res$par, parameter_list)
   parameter_list_est$defense <- c(sum(parameter_list_est$defense)*-1, parameter_list_est$defense)
   names(parameter_list_est$defense)[1] <- all_teams[1]
+
+  parameter_list_est$attack <- c(sum(parameter_list_est$attack)*-1, parameter_list_est$attack)
+  names(parameter_list_est$attack)[1] <- all_teams[1]
 
   loglikelihood <- optim_res$value*-1
   npar_est <- length(optim_res$par)
