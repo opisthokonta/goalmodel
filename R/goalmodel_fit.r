@@ -244,7 +244,11 @@ negloglik <- function(params, goals1, goals2, team1, team2,
   } else if (model == 'gaussian'){
     log_lik_1 <- stats::dnorm(goals1, mean = expg$expg1, sd = exp(plist$sigma), log=TRUE)
     log_lik_2 <- stats::dnorm(goals2, mean = expg$expg2, sd = exp(plist$sigma), log=TRUE)
+  } else if (model == 'ls'){
+    log_lik_1 <- ((expg$expg1 - goals1)^2)*-1
+    log_lik_2 <- ((expg$expg2 - goals2)^2)*-1
   }
+
 
   log_lik_terms <- log_lik_1 + log_lik_2
 
@@ -352,9 +356,9 @@ goalmodel <- function(goals1, goals2, team1, team2,
             length(team1) == length(team2),
             length(goals1) >= 1,
             is.numeric(goals1), is.numeric(goals2),
-            model %in% c('poisson', 'negbin', 'gaussian'))
+            model %in% c('poisson', 'negbin', 'gaussian', 'ls'))
 
-  if (model == 'gaussian'){
+  if (model %in% c('gaussian', 'ls')){
     if (dc){
       stop('Dixon-Coles adjustment does not work with a Gaussian model.')
     }
@@ -523,7 +527,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
                      param_skeleton=parameter_list,
                      weights = weights,
                      method = optim_method,
-                     control = list(maxit = 150))
+                     control = list(maxit = 250))
 
   end_time <- Sys.time()
   est_time <- difftime(end_time, start_time, units='secs')
@@ -546,8 +550,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
   aic <- npar_est*2 - 2*loglikelihood
 
   ## Deviances
+  all_goals <- c(goals1, goals2)
   if (model == 'poisson'){
-    all_goals <- c(goals1, goals2)
     if (is.null(weights)){
       loglikelihood_saturated <- sum(stats::dpois(all_goals, lambda = all_goals, log=TRUE))
       loglikelihood_null <- sum(stats::dpois(all_goals, lambda = mean(all_goals), log=TRUE))
@@ -557,7 +561,6 @@ goalmodel <- function(goals1, goals2, team1, team2,
     }
 
   } else if (model == 'negbin'){
-    all_goals <- c(goals1, goals2)
     if (is.null(weights)){
       mean_goals <- mean(all_goals)
       dispersion0_tmp <- MASS::theta.ml(y = all_goals, mu=mean_goals, limit = 1000)
@@ -571,7 +574,6 @@ goalmodel <- function(goals1, goals2, team1, team2,
     }
   } else if (model == 'gaussian'){
     #TODO
-    all_goals <- c(goals1, goals2)
     if (is.null(weights)){
       mean_goals <- mean(all_goals)
       sigma0_tmp <- stats::sd(all_goals)
@@ -583,8 +585,12 @@ goalmodel <- function(goals1, goals2, team1, team2,
       loglikelihood_saturated <- NA
       loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
     }
-
+  } else if (model == 'ls'){
+    # TODO
+    loglikelihood_saturated <- NA
+    loglikelihood_null <- NA
   }
+
 
   deviance <- 2 * (loglikelihood_saturated - loglikelihood)
   deviance_null <- 2 * (loglikelihood_saturated - loglikelihood_null)

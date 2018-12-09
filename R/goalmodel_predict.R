@@ -61,7 +61,7 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
 
   # find the upper limit of where to evaluate the probability function.
   upper_prob <- 0.999
-  if (model_fit$model %in% c('poisson', 'gaussian')){
+  if (model_fit$model %in% c('poisson', 'gaussian', 'ls')){
     maxgoal <- stats::qpois(upper_prob, lambda=model_fit$maxgoal)
   }
   else if (model_fit$model == 'negbin'){
@@ -76,7 +76,7 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
   }
 
   for (ii in 1:length(team1)){
-    if (model_fit$model %in% c('poisson', 'gaussian')){
+    if (model_fit$model %in% c('poisson', 'gaussian', 'ls')){
       res_tmp <- stats::dpois(0:maxgoal, expg$expg1[ii]) %*% t(stats::dpois(0:maxgoal, expg$expg2[ii]))
     } else if (model_fit$model == 'negbin'){
       res_tmp <- stats::dnbinom(0:maxgoal, mu = expg$expg1[ii], size = 1 / model_fit$parameters$dispersion) %*%

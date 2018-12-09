@@ -81,6 +81,22 @@ test_that("Fitting Gaussian model", {
 
 
 
+context("Model fitting - Least squares")
+
+# Fit a Gaussian model.
+gm_res_ls <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                             team1 = england_2011$home, team2=england_2011$visitor, model='ls')
+
+test_that("Fitting model with least squares", {
+  expect_equal(class(gm_res_ls), 'goalmodel')
+  expect_equal(gm_res_ls$parameters$dispersion, NULL)
+  expect_equal(gm_res_ls$parameters$sigma, NULL)
+  expect_equal(gm_res_ls$parameters$gamma, NULL)
+  expect_equal(names(gm_res_ls$parameters$attack), names(gm_res_ls$parameters$defense))
+})
+
+
+
 context("Model fitting - Manually specified initial values")
 
 my_inits <- list('defense' = c('Arsenal' = 0.8, 'Chelsea' = 0.23,
