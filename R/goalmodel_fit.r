@@ -658,7 +658,13 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
   deviance <- 2 * (loglikelihood_saturated - loglikelihood)
   deviance_null <- 2 * (loglikelihood_saturated - loglikelihood_null)
-  r_squared <- 1 - (deviance / deviance_null)
+
+  if (model != 'ls'){
+    r_squared <- 1 - (deviance / deviance_null)
+  } else {
+    r_squared <- 1 - ((loglikelihood*-1) / (sum((all_goals - mean_goals)^2)))
+  }
+
 
 
   ngames <- length(goals1)
