@@ -23,6 +23,8 @@ test_that("Fitting default model", {
   expect_equal(gm_res$parameters$rho, NULL)
   expect_equal(gm_res$parameters$gamma, NULL)
   expect_equal(names(gm_res$parameters$attack), names(gm_res$parameters$defense))
+  expect_equal(any(duplicated(names(gm_res$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res$parameters$defense))), FALSE)
 })
 
 
@@ -39,6 +41,35 @@ test_that("Fitting Dixon-Coles model", {
   expect_equal(is.numeric(gm_res_dc$parameters$rho), TRUE)
   expect_equal(gm_res_dc$parameters$gamma, NULL)
   expect_equal(names(gm_res_dc$parameters$attack), names(gm_res_dc$parameters$defense))
+  expect_equal(any(duplicated(names(gm_res_dc$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_dc$parameters$defense))), FALSE)
+})
+
+
+
+context("Model fitting - some fixed parameters")
+
+## Test if two-step estimation works as it should.
+
+# Fit the Dixon-Coles model, with most of the parameters fixed to the values in the default model.
+my_fixed_params1 <- list(attack = c('Chelsea' = 0.2), defense= c('Fulham' = -0.09, 'Liverpool' = 0.1))
+
+gm_res_fp1 <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                          team1 = england_2011$home, team2=england_2011$visitor,
+                          dc=FALSE, fixed_params = my_fixed_params1)
+
+
+test_that("Fitting default model - some parameters fixed", {
+  expect_equal(class(gm_res_fp1), 'goalmodel')
+  expect_equal(gm_res_fp1$parameters$dispersion, NULL)
+  expect_equal(gm_res_fp1$parameters$gamma, NULL)
+  expect_equal(any(is.na(gm_res_fp1$parameters$attack)), FALSE)
+  expect_equal(any(is.na(gm_res_fp1$parameters$defense)), FALSE)
+  expect_equal(names(gm_res_fp1$parameters$attack), names(gm_res_fp1$parameters$defense))
+  expect_equal(gm_res_fp1$parameters$attack, gm_res_fp1$parameters$attack)
+  expect_equal(gm_res_fp1$parameters$defense, gm_res_fp1$parameters$defense)
+  expect_equal(any(duplicated(names(gm_res_fp1$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_fp1$parameters$defense))), FALSE)
 })
 
 
@@ -51,6 +82,7 @@ gm_res_dc_2s <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgo
                           team1 = england_2011$home, team2=england_2011$visitor,
                           dc=TRUE, fixed_params = gm_res$parameters)
 
+
 test_that("Fitting Dixon-Coles model - 2step", {
   expect_equal(class(gm_res_dc_2s), 'goalmodel')
   expect_equal(gm_res_dc_2s$parameters$dispersion, NULL)
@@ -60,6 +92,8 @@ test_that("Fitting Dixon-Coles model - 2step", {
   expect_equal(gm_res_dc_2s$parameters$attack, gm_res$parameters$attack)
   expect_equal(gm_res_dc_2s$parameters$defense, gm_res$parameters$defense)
   expect_equal(gm_res_dc_2s$parameters$rho == gm_res_dc$parameters$rho, FALSE)
+  expect_equal(any(duplicated(names(gm_res_dc_2s$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_dc_2s$parameters$defense))), FALSE)
 })
 
 
@@ -85,7 +119,8 @@ context("Model fitting - Least squares")
 
 # Fit a Gaussian model.
 gm_res_ls <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
-                             team1 = england_2011$home, team2=england_2011$visitor, model='ls')
+                             team1 = england_2011$home, team2=england_2011$visitor, model='ls',
+                       optim_method = 'L-BFGS-B')
 
 test_that("Fitting model with least squares", {
   expect_equal(class(gm_res_ls), 'goalmodel')
@@ -179,6 +214,10 @@ test_that("Predict goals", {
   expect_equal(is.matrix(pred_goals_dc[[1]]), TRUE)
   expect_equal(is.matrix(pred_goals_default[[2]]), TRUE)
   expect_equal(is.matrix(pred_goals_dc[[2]]), TRUE)
+  expect_equal(any(is.na(pred_goals_default[[1]])), FALSE)
+  expect_equal(any(is.na(pred_goals_dc[[1]])), FALSE)
+  expect_equal(any(is.na(pred_goals_default[[2]])), FALSE)
+  expect_equal(any(is.na(pred_goals_dc[[2]])), FALSE)
 })
 
 
