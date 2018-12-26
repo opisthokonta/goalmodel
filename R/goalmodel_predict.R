@@ -51,8 +51,8 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
 
-  if (model_fit$model == 'gaussian'){
-    warning('Model is Gaussian. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
+  if (model_fit$model %in% c('gaussian', 'ls')){
+    warning('Model is Gaussian or ls. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
   }
 
   ## predict the expected goals.
@@ -152,8 +152,8 @@ predict_ou <- function(model_fit, team1, team2,
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
 
-  if (model_fit$model == 'gaussian'){
-    warning('Model is Gaussian. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
+  if (model_fit$model %in% c('gaussian', 'ls')){
+    warning('Model is Gaussian or ls. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
   }
 
   team1 <- as.character(team1)
