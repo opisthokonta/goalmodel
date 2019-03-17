@@ -47,7 +47,14 @@ test_that("Fitting Dixon-Coles model", {
   expect_equal(names(gm_res_dc$parameters$attack), names(gm_res_dc$parameters$defense))
   expect_equal(any(duplicated(names(gm_res_dc$parameters$attack))), FALSE)
   expect_equal(any(duplicated(names(gm_res_dc$parameters$defense))), FALSE)
+
+  # Fit DC model on dataset with where there are no low-scoring games
+  expect_error(goalmodel(goals1 = england_2011$hgoal+2, goals2 = england_2011$vgoal+2,
+                         team1 = england_2011$home, team2=england_2011$visitor,
+                         dc=TRUE))
 })
+
+
 
 
 

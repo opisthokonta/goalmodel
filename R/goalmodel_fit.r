@@ -394,11 +394,17 @@ goalmodel <- function(goals1, goals2, team1, team2,
             is.numeric(goals1), is.numeric(goals2),
             model %in% c('poisson', 'negbin', 'gaussian', 'ls'))
 
-  if (model %in% c('gaussian', 'ls')){
-    if (dc){
-      stop('Dixon-Coles adjustment does not work with a Gaussian model.')
+  if (dc){
+    # Check if there is any data suitable for DC adjustment.
+    if(!any(goals1 <= 1 & goals2 <= 1)){
+      stop('Dixon-Coles adjustment is not applicable when there are no instances both teams scoring 1 goal or less. ')
+    }
+
+    if (model %in% c('gaussian', 'ls')){
+        stop('Dixon-Coles adjustment does not work with a Gaussian model.')
     }
   }
+
 
   if (!is.null(weights)){
     stopifnot(is.numeric(weights),
