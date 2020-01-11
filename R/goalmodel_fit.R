@@ -1,73 +1,3 @@
-# This script contain functions for fitting goalmodels.
-
-
-# Find initial values
-initial_values <- function(goals1, goals2, team1, team2, all_teams,
-                           offset = NULL, weights=NULL,
-                           initvals=NULL){
-  # Compute initial values for the attack and defence effects.
-
-  n_teams <- length(all_teams)
-
-  parameter_list <- list(attack = rep(0.0, n_teams),
-                         defense = rep(0.0, n_teams))
-  names(parameter_list$attack) <- all_teams
-  names(parameter_list$defense) <- all_teams
-
-  avg <- mean(c(goals2, goals1))
-
-  for (tt in 1:length(all_teams)){
-    tt_idx1 <- team1 == all_teams[tt]
-    tt_idx2 <- team2 == all_teams[tt]
-
-    if (is.null(weights)){
-      avg_scored <- mean(c(goals2[tt_idx2], goals1[tt_idx1]))
-      avg_conceded <- mean(c(goals1[tt_idx2], goals2[tt_idx1]))
-    } else {
-      ww <- c(weights[tt_idx2], weights[tt_idx1])
-      avg_scored <- stats::weighted.mean(c(goals2[tt_idx2], goals1[tt_idx1]), ww)
-      avg_conceded <- stats::weighted.mean(c(goals1[tt_idx2], goals2[tt_idx1]), ww)
-    }
-
-    parameter_list$attack[all_teams[tt]] <- (avg - avg_scored)/2.5
-    parameter_list$defense[all_teams[tt]] <- (avg - avg_conceded)/2.5
-  }
-
-  # If initial values is supplied by the user, modify
-  # the parameter_list accordingly.
-  if (!is.null(initvals)){
-    stopifnot(is.list(initvals))
-
-    if ('attack' %in% initvals){
-      # Attack parameters for teams not in the data set is ignored.
-      inamesa <- intersect(names(initvals$attack), names(parameter_list$attack))
-      parameter_list$attack[inamesa] <- initvals$attack[inamesa]
-    }
-
-    if ('defense' %in% initvals){
-      # Defense parameters for teams not in the data set is ignored.
-      inamesd <- intersect(names(initvals$defense), names(parameter_list$defense))
-      parameter_list$defense[inamesd] <- initvals$defense[inamesd]
-    }
-
-  }
-
-  # The first defense parameter is removed. This is because
-  # the sum-to-zero constraint that infers this parameter
-  # from the rest.
-  parameter_list$defense <- parameter_list$defense[-1]
-  parameter_list$attack <- parameter_list$attack[-1]
-  parameter_list$intercept <- avg
-
-  if (!is.null(offset)){
-    moffset <- exp(mean(offset))
-    parameter_list$attack <- parameter_list$attack / moffset
-    parameter_list$defense <- parameter_list$defense / moffset
-    parameter_list$intercept <- moffset
-  }
-
-  return(parameter_list)
-}
 
 
 # Compute the Rue-Salvesen adjustment.
@@ -170,7 +100,7 @@ lambda_pred <- function(plist, team1, team2, x1, x2){
 
 
 # Check that a list of parameters has correct layout.
-# Returns TRUE if it is OK.
+# Returns TRUE if everything is OK.
 check_plist <- function(plist, all_teams = NULL){
 
   t1 <- is.list(plist)
@@ -280,14 +210,9 @@ negloglik <- function(params, goals1, goals2, team1, team2,
   } else if (model == 'gaussian'){
     log_lik_1 <- stats::dnorm(goals1, mean = expg$expg1, sd = exp(plist$sigma), log=TRUE)
     log_lik_2 <- stats::dnorm(goals2, mean = expg$expg2, sd = exp(plist$sigma), log=TRUE)
-  } else if (model == 'ls'){
-    log_lik_1 <- ((expg$expg1 - goals1)^2)*-1
-    log_lik_2 <- ((expg$expg2 - goals2)^2)*-1
   }
 
-
   log_lik_terms <- log_lik_1 + log_lik_2
-
 
   # Dixon-Coles adjustment
   if ('rho' %in% names(plist)){
@@ -314,13 +239,141 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 }
 
 
+# Fit models using the built-in glm.fit() function.
+gm_fit_glm <- function(goals1, goals2, team1, team2,
+                           all_teams, model, additional_covariates,
+                           x1 = NULL, x2=NULL,
+                           hfa=TRUE,  weights=NULL){
+
+  # prepare some
+  n_teams <- length(all_teams)
+  team1_stacked <- c(team1, team2)
+  team2_stacked <- c(team2, team1) # Opponent
+
+  # Make response (y) vector
+  yy <- c(goals1, goals2)
+
+  # Attack dummy matrix
+  xmata <- matrix(0, nrow=length(goals2)*2,
+                  ncol = (n_teams-1))
+  colnames(xmata) <- all_teams[-1]
+
+  # Defense dummy matrix
+  xmatd <- matrix(0, nrow=length(goals2)*2,
+                  ncol = (n_teams-1))
+  colnames(xmatd) <- all_teams[-1]
+
+  for (ii in 2:n_teams){
+
+    t1_idx <- team1_stacked == all_teams[ii]
+    t2_idx <- team2_stacked == all_teams[ii]
+    xmata[t1_idx, all_teams[ii]] <- 1
+    xmatd[t2_idx, all_teams[ii]] <- -1
+  }
+
+  # Sum-to-zero constraint for the first team.
+  xmata[team1_stacked == all_teams[1]] <- -1
+  xmatd[team2_stacked == all_teams[1]] <- -1
+
+  # Combine the attack and defence matrices.
+  colnames(xmata) <- paste(colnames(xmata), 'Attack', sep='_')
+  colnames(xmatd) <- paste(colnames(xmatd), 'Defense', sep='_')
+
+  # Add home field advantage.
+  if (hfa){
+    xmat <- cbind(intercept = 1, hfa = rep(1:0, each=length(goals2)),
+                  xmata, xmatd)
+  } else {
+    xmat <- cbind(intercept = 1, xmata, xmatd)
+  }
+
+  # Add additional covariates.
+  if (length(additional_covariates) != 0){
+    additional_xmat <- matrix(0, ncol = length(additional_covariates),
+                              nrow=length(goals2)*2)
+    colnames(additional_xmat) <- additional_covariates
+
+    if (!is.null(x1)){
+      additional_xmat[1:length(goals2),colnames(x1)] <- x1
+    }
+
+    if (!is.null(x2)){
+      additional_xmat[(length(goals1)+1):(length(goals2)*2), colnames(x2)] <- x2
+    }
+    xmat <- cbind(xmat, additional_xmat)
+  }
+
+  if (model == 'poisson'){
+    glm_family <- stats::poisson()
+  } else if (model == 'gaussian'){
+    glm_family <- stats::gaussian()
+  }
+
+  if (is.null(weights)){
+    glm_res <- stats::glm.fit(x=xmat, y=yy,
+                       family=glm_family,
+                       control = list(maxit=100, epsilon = 1e-9),
+                       intercept = FALSE)
+  } else {
+    glm_res <- stats::glm.fit(x=xmat, y=yy,
+                              weights=rep(weights, 2),
+                              family=glm_family,
+                              control = list(maxit=100, epsilon = 1e-9),
+                              intercept = FALSE)
+  }
+
+  attack_params <- glm_res$coefficients[grepl('_Attack$', names(glm_res$coefficients))]
+  names(attack_params) <- sub('_Attack$', '', names(attack_params))
+  attack_params <- c(sum(attack_params)*-1, attack_params)
+  names(attack_params)[1] <- all_teams[1]
+
+  defense_params <- glm_res$coefficients[grepl('_Defense$', names(glm_res$coefficients))]
+  names(defense_params) <- sub('_Defense$', '', names(defense_params))
+  defense_params <- c(sum(defense_params), defense_params)
+  names(defense_params)[1] <- all_teams[1]
+
+  param_list <- list(attack = attack_params,
+                     defense = defense_params,
+                     intercept = glm_res$coefficients['intercept'])
+
+  if (model == 'gaussian'){
+    param_list$sigma = stats::sd(glm_res$residuals)
+  }
+
+  names(param_list$intercept) <- NULL # The intercept vector should not be named.
+
+  if (hfa){
+    param_list$hfa <- glm_res$coefficients['hfa']
+    names(param_list$hfa) <- NULL # The hfa vector should not be named.
+  }
+
+  if (length(additional_covariates) != 0){
+    nadc <- length(additional_covariates)
+    ncoef <- length(glm_res$coefficients)
+    param_list$beta <- glm_res$coefficients[(ncoef-(nadc-1)):ncoef]
+  }
+
+  stopifnot(check_plist(param_list))
+
+  # Compute the log-likelihood.
+  loglik <- sum(stats::dpois(x = c(goals1, goals2),
+                lambda=glm_res$fitted.values, log=TRUE))
+
+  return(list(parameters = param_list, loglikelihood=loglik,
+              npar_fixed = 0, npar_est = ncol(xmat), aic=glm_res$aic,
+              converged = glm_res$converged,
+              boundary = glm_res$boundary))
+
+}
+
+
 
 
 #' Fitting models for goals
 #'
 #' \code{goalmodel} is used to fit models of goals scored in sports competitions. At a minimum this function estimates 'attack' and 'defence'
 #' ratings for all teams, but other covariates can be included, as well as other adjustments. The underlying statistical model
-#' can be either a Poisson or a Negative Binomial model.
+#' can be either a Poisson, Negative Binomial, or Gaussian model.
 #'
 #' Fixed parameters must be given as a list that is similar as the one returned from this function. See the 'value' section.
 #'
@@ -336,8 +389,7 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' @param fixed_params A list with parameters that should be kept constant while the other parameters are estimated from data.
 #' @param weights Numeric vector of weigths that determine the influence of each match on the final parameter estimates.
 #' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.
-#' @param optim_method String indicating which optimization method to use. See \code{\link{optim}} for more details.
-#' @param initvals Optional list of starting values for the parameters.
+#' @param optim_method String indicating which optimization method to use in case the model can't be fitted with gml.fit(). See \code{\link{optim}} for more details.
 #'
 #'
 #' @return
@@ -353,9 +405,10 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 #' \item ngames -  Number of games in the data.
 #' \item est_time - The time it took to fit the model.
 #' \item model = A string indicating whether a Poisson or Negative Binomial model was used.
-#' \item optim_res - The output from optim.
 #' \item fixed_params - A list with the parameters that was kept constant during model fitting.
+#' \item converged - Logical indicating if the model fitting converged.
 #' \item maxgoal - The greatest number of goals seen in the data. Used by the prediction functions.
+#' \item fitter - String indicating wether the model was fitted with the built-in glm.fit() function.
 #'  }
 
 #'
@@ -384,15 +437,14 @@ goalmodel <- function(goals1, goals2, team1, team2,
                       x1 = NULL, x2=NULL,
                       hfa=TRUE, dc=FALSE, rs=FALSE,
                       fixed_params = NULL, weights=NULL,
-                      model = 'poisson', optim_method='BFGS',
-                      initvals = NULL){
+                      model = 'poisson', optim_method='BFGS'){
 
   stopifnot(length(goals1)==length(goals2),
             length(goals2) == length(team1),
             length(team1) == length(team2),
             length(goals1) >= 1,
             is.numeric(goals1), is.numeric(goals2),
-            model %in% c('poisson', 'negbin', 'gaussian', 'ls'))
+            model %in% c('poisson', 'negbin', 'gaussian'))
 
   if (dc){
     # Check if there is any data suitable for DC adjustment.
@@ -400,8 +452,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
       stop('Dixon-Coles adjustment is not applicable when there are no instances both teams scoring 1 goal or less. ')
     }
 
-    if (model %in% c('gaussian', 'ls')){
-        stop('Dixon-Coles adjustment does not work with a Gaussian model.')
+    if (model %in% c('gaussian')){
+      stop('Dixon-Coles adjustment does not work with a Gaussian model.')
     }
   }
 
@@ -414,40 +466,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
               !all(weights == 0))
   }
 
-  team1 <- as.character(team1)
-  team2 <- as.character(team2)
-  all_teams <- sort(unique(c(unique(team1), unique(team2))), decreasing = FALSE)
-  n_teams <- length(all_teams)
-
-  parameter_list <- initial_values(goals1 = goals1, goals2 = goals2,
-                                   team1 = team1, team2=team2,
-                                   all_teams = all_teams,
-                                   initvals = initvals)
-
-  if (hfa){
-    parameter_list$hfa <- 0.1
-  }
-
-  if (dc){
-    parameter_list$rho <- 0.01
-  }
-
-  if (rs){
-    parameter_list$gamma <- 0.0
-  }
-
-  if (model == 'negbin'){
-    # on log scale during estimation.
-    parameter_list$dispersion <- -10
-  }
-
-  if (model == 'gaussian'){
-    # on log scale during estimation.
-    parameter_list$sigma <- log(stats::sd(c(goals1,goals2))*1.5)
-  }
-
-
-  # Parameters for additional covariates.
+  # If there are any additional coavriates (x1, x2):
+  # Do some checks and make some preparations.
   additional_covariates <- c() # the variable names.
   if (!is.null(x1)){
     stopifnot(is.matrix(x1))
@@ -468,156 +488,193 @@ goalmodel <- function(goals1, goals2, team1, team2,
     additional_covariates <- unique(c(additional_covariates, colnames(x2)))
   }
 
-  if (length(additional_covariates) != 0){
-    parameter_list$beta <- rep(0.1, length(additional_covariates))
-    names(parameter_list$beta) <- additional_covariates
-  }
+
+  # Make sure the team vectors are of the charcter type.
+  team1 <- as.character(team1)
+  team2 <- as.character(team2)
+
+  # Some useful quantities.
+  all_teams <- sort(unique(c(unique(team1), unique(team2))), decreasing = FALSE)
+  n_teams <- length(all_teams)
+  ngames <- length(goals1)
+
+  # If it is sufficient to fit the model with glm.fit().
+  mdefault <- model %in% c('poisson', 'gaussian') & dc == FALSE & rs == FALSE & is.null(fixed_params)
+
+  fitter <- ifelse(mdefault, 'glm.fit', 'gm')
+
+  # Fit a model with glm.fit. Some model classes are compatible with this function.
+  # If not, the results from fitting this simples model is used as starting values.
+
+  # TODO: If all attack and defence and hfa and intercept are fixed, this is not
+  # needed for fitting the rest of the models. This step should be skiped
+  # to save computing time.
+
+  # TODO: Gaussian/ls models can with a few modification also be fitted with this
+  # approach.
+
+  # TODO: Maybe even negbin models can be fitted with this approach, with
+  # the glm.nb() function from the MASS pacakge.
+
+  start_time <- Sys.time()
+
+  gm_fit_glm_res <- gm_fit_glm(goals1=goals1, goals2=goals2,
+                               team1=team1, team2=team2,
+                               all_teams = all_teams,
+                               model = model,
+                               weights = weights,
+                               additional_covariates = additional_covariates,
+                               x1 = x1, x2=x2, hfa=hfa)
 
 
-  # user supplied initial values.
-  if (!is.null(initvals)){
+  if (mdefault){
 
-    # Uses supplied values for attack and defense parameters
-    # are processed in the initial_values function.
+    if (!gm_fit_glm_res$converged){
+      warning('Did not converge (glm.fit). Parameter estimates are unreliable.')
+    }
 
-    if ('hfa' %in% names(initvals)){
-      if (hfa){
-        parameter_list$hfa <- initvals$hfa
-      } else {
-        warning('Initial values for hfa is supplied, but hfa=FALSE. Will be ignored.')
+    if (gm_fit_glm_res$boundary){
+      warning('glm.fit(): Fitted values on the boundary of the attainable values. Parameter estimates are unreliable.')
+    }
+
+    parameter_list <- gm_fit_glm_res$parameters
+    loglikelihood <- gm_fit_glm_res$loglikelihood
+    npar_est <- gm_fit_glm_res$npar_est
+    npar_fixed <- gm_fit_glm_res$npar_fixed
+    aic <- gm_fit_glm_res$aic
+    converged <- gm_fit_glm_res$converged
+
+  } else {
+
+    # initial values from gm_fit_glm_res.
+    parameter_list_init <- gm_fit_glm_res$parameters
+    parameter_list_init$attack <- parameter_list_init$attack[-1]
+    parameter_list_init$defense <- parameter_list_init$defense[-1]
+
+    # Add additional initial values.
+    if (dc){
+      parameter_list_init$rho <- 0.01
+    }
+
+    if (rs){
+      parameter_list_init$gamma <- 0.0
+    }
+
+    if (model == 'negbin'){
+      # on log scale during estimation.
+      parameter_list_init$dispersion <- -10
+    }
+
+    if (model == 'gaussian'){
+      # on log scale during estimation.
+      parameter_list_init$sigma <- log(parameter_list_init$sigma)
+    }
+
+    # Deal with fixed parameters.
+    if (!is.null(fixed_params)){
+
+      stopifnot(is.list(fixed_params))
+
+      if (any(!names(fixed_params) %in% c('attack', 'defense', 'beta', 'intercept',
+                                          'sigma', 'rho', 'dispersion', 'gamma', 'hfa'))){
+        stop('In fixed_params: Invalid parameter name.')
       }
-    }
 
-    if ('rho' %in% names(initvals)){
-      if (dc){
-        parameter_list$rho <- initvals$rho
-      } else {
-        warning('Initial values for rho is supplied, but dc=FALSE. Will be ignored.')
+      # remove fixed parameters from the parameter_list_init, since they are
+      # not optimized over.
+      if ('attack' %in% names(fixed_params)){
+        fixed_attack_params <- names(parameter_list_init$attack) %in% names(fixed_params$attack)
+        parameter_list_init$attack <- parameter_list_init$attack[!fixed_attack_params]
       }
-    }
 
-    if ('gamma' %in% names(initvals)){
-      if (rs){
-        parameter_list$gamma <- initvals$gamma
-      } else {
-        warning('Initial values for gamma is supplied, but rs=FALSE. Will be ignored.')
+      if ('defense' %in% names(fixed_params)){
+        fixed_defence_params <- names(parameter_list_init$defense) %in% names(fixed_params$defense)
+        parameter_list_init$defense <- parameter_list_init$defense[!fixed_defence_params]
       }
-    }
 
-    if ('dispersion' %in% names(initvals)){
-      if (model == 'negbin'){
-        parameter_list$dispersion <- initvals$dispersion
-      } else {
-        warning('Initial values for dispersion is supplied, but model is not negbin. Will be ignored.')
-      }
-    }
+      # remove the parameters that are not attack aand defence parameters.
+      if (any(!names(fixed_params) %in% c('attack', 'defense'))){
 
-    if ('sigma' %in% names(initvals)){
-      if (model == 'gaussian'){
-        parameter_list$sigma <- initvals$sigma
-      } else {
-        warning('Initial values for sigma is supplied, but model is not gaussian. Will be ignored.')
-      }
-    }
+        parameter_list_init[names(fixed_params)] <- NULL
 
-    if ('beta' %in% names(initvals)){
-      if (length(additional_covariates) != 0){
-        inamesb <- intersect(names(initvals$beta), names(parameter_list$beta))
-        parameter_list$beta[inamesb] <- initvals$beta[inamesb]
-      }
-    }
+        if ('dispersion' %in% names(fixed_params)){
+          # During estimation, the dispersion parameter is on the log scale
+          # to avoid negative values.
+          fixed_params$dispersion <- log(fixed_params$dispersion)
 
-    # Do some checks to make sure the parameter list is OK.
-    check_plist(parameter_list, all_teams = all_teams)
-
-  }
-
-
-
-  if (!is.null(fixed_params)){
-
-    stopifnot(is.list(fixed_params))
-
-    if (any(!names(fixed_params) %in% c('attack', 'defense', 'beta', 'intercept',
-      'sigma', 'rho', 'dispersion', 'gamma', 'hfa'))){
-      stop('In fixed_params: Invalid parameter name.')
-    }
-
-    # remove fixed parameters from the parameter_list, since they are
-    # not optimized over.
-    if ('attack' %in% names(fixed_params)){
-      fixed_attack_params <- names(parameter_list$attack) %in% names(fixed_params$attack)
-      parameter_list$attack <- parameter_list$attack[!fixed_attack_params]
-    }
-
-    if ('defense' %in% names(fixed_params)){
-      fixed_defence_params <- names(parameter_list$defense) %in% names(fixed_params$defense)
-      parameter_list$defense <- parameter_list$defense[!fixed_defence_params]
-    }
-
-    # remove the parameters that are not attack aand defence parameters.
-    if (any(!names(fixed_params) %in% c('attack', 'defense'))){
-
-      parameter_list[names(fixed_params)] <- NULL
-
-      if ('dispersion' %in% names(fixed_params)){
-        # During estimation, the dispersion parameter is on the log scale
-        # to avoid negative values.
-        fixed_params$dispersion <- log(fixed_params$dispersion)
-
-        if (model == 'poisson'){
-          warning('Dispersion parameter is fixed, but model is Poisson. The dispersion parameter will not have an effect.')
-        } else if (model == 'gaussian'){
-          warning('Dispersion parameter is fixed, but model is Gaussian The dispersion parameter will not have an effect. The related parameter for the Gaussian model is sigma.')
+          if (model == 'poisson'){
+            warning('Dispersion parameter is fixed, but model is Poisson. The dispersion parameter will not have an effect.')
+          } else if (model == 'gaussian'){
+            warning('Dispersion parameter is fixed, but model is Gaussian The dispersion parameter will not have an effect. The related parameter for the Gaussian model is sigma.')
+          }
         }
       }
+
+    } # end fixed params
+
+    # Commence estimation.
+    parameter_vector <- unlist(parameter_list_init)
+
+    optim_res <- stats::optim(par = parameter_vector, fn=negloglik,
+                              goals1 = goals1, goals2 = goals2,
+                              team1=team1, team2=team2,
+                              x1 = x1, x2 = x2,
+                              fixed_params=fixed_params,
+                              model = model,
+                              all_teams = all_teams,
+                              param_skeleton=parameter_list_init,
+                              weights = weights,
+                              method = optim_method,
+                              control = list(maxit = 250))
+
+    converged <- optim_res$convergence == 0
+
+    if (!converged){
+      warning('Did not converge (optim). Parameter estimates are unreliable.')
     }
 
+    # relist the parameter vector, calculate the missing attack and defense parameter.
+    parameter_list_est <- utils::relist(optim_res$par, parameter_list_init)
+
+    if (length(parameter_list_est$defense) != 0){
+      # TODO: There is probably a bug here, if there is only one parameter that
+      # is not fixed. Also in the negloglik() function.
+
+      # if 0, then all defense parameters are presumably fixed.
+      parameter_list_est$defense <- c(sum(parameter_list_est$defense)*-1, parameter_list_est$defense)
+      names(parameter_list_est$defense)[1] <- all_teams[1]
+    }
+
+    if (length(parameter_list_est$attack) != 0){
+      # if 0, then all attack parameters are presumably fixed.
+      parameter_list_est$attack <- c(sum(parameter_list_est$attack)*-1, parameter_list_est$attack)
+      names(parameter_list_est$attack)[1] <- all_teams[1]
+    }
+
+    loglikelihood <- optim_res$value*-1
+    npar_est <- length(optim_res$par)
+    npar_fixed <- length(unlist(fixed_params))
+    aic <- npar_est*2 - 2*loglikelihood
+
+    # rescale dispersion
+    if ('dispersion' %in% names(parameter_list_est)){
+      parameter_list_est$dispersion <- exp(parameter_list_est$dispersion)
+    }
+
+    # rescale sigma
+    if ('sigma' %in% names(parameter_list_est)){
+      parameter_list_est$sigma <- exp(parameter_list_est$sigma)
+    }
+
+    # Add the fixed parameters to the parameter list.
+    parameter_list <- fill_fixed_params(parameter_list_est, fixed_params = fixed_params)
 
   }
-
-  # Commence estimation.
-  parameter_vector <- unlist(parameter_list)
-  start_time <- Sys.time()
-  optim_res <- stats::optim(par = parameter_vector, fn=negloglik,
-                     goals1 = goals1, goals2 = goals2,
-                     team1=team1, team2=team2,
-                     x1 = x1, x2 = x2,
-                     fixed_params=fixed_params,
-                     model = model,
-                     all_teams = all_teams,
-                     param_skeleton=parameter_list,
-                     weights = weights,
-                     method = optim_method,
-                     control = list(maxit = 250))
 
   end_time <- Sys.time()
   est_time <- difftime(end_time, start_time, units='secs')
 
-  if (optim_res$convergence != 0){
-    warning('Did not converge!! Parameter estimates are unreliable.')
-  }
-
-  # relist the parameter vector, calculate the missing defense parameter.
-  parameter_list_est <- utils::relist(optim_res$par, parameter_list)
-
-  if (length(parameter_list_est$defense) != 0){
-    # if 0, then all defense parameters are presumably fixed.
-    parameter_list_est$defense <- c(sum(parameter_list_est$defense)*-1, parameter_list_est$defense)
-    names(parameter_list_est$defense)[1] <- all_teams[1]
-  }
-
-  if (length(parameter_list_est$attack) != 0){
-    # if 0, then all attack parameters are presumably fixed.
-    parameter_list_est$attack <- c(sum(parameter_list_est$attack)*-1, parameter_list_est$attack)
-    names(parameter_list_est$attack)[1] <- all_teams[1]
-  }
-
-  loglikelihood <- optim_res$value*-1
-  npar_est <- length(optim_res$par)
-  npar_fixed <- length(unlist(fixed_params))
-  aic <- npar_est*2 - 2*loglikelihood
-
+  # Compute R squared.
   all_goals <- c(goals1, goals2)
   if (is.null(weights)){
     mean_goals <- mean(all_goals)
@@ -625,7 +682,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
     mean_goals <- stats::weighted.mean(all_goals, w = rep(weights, 2))
   }
 
-  ## Deviances
+  ## Deviances needed for R squared.
   if (model == 'poisson'){
     if (is.null(weights)){
       loglikelihood_saturated <- sum(stats::dpois(all_goals, lambda = all_goals, log=TRUE))
@@ -656,60 +713,33 @@ goalmodel <- function(goals1, goals2, team1, team2,
       loglikelihood_saturated <- NA
       loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
     }
-  } else if (model == 'ls'){
-    loglikelihood_saturated <- NA
-    loglikelihood_null <- NA
   }
-
 
   deviance <- 2 * (loglikelihood_saturated - loglikelihood)
   deviance_null <- 2 * (loglikelihood_saturated - loglikelihood_null)
 
-  if (model != 'ls'){
-    r_squared <- 1 - (deviance / deviance_null)
-  } else {
-    r_squared <- 1 - ((loglikelihood*-1) / (sum((all_goals - mean_goals)^2)))
-  }
-
-
-
-  ngames <- length(goals1)
-
-  # Add the fixed parameters to the parameter list.
-  parameter_list_all <- fill_fixed_params(parameter_list_est, fixed_params = fixed_params)
+  r_squared <- 1 - (deviance / deviance_null)
 
   # sort the attack and defence paramters alphabetically
-  parameter_list_all$defense <-parameter_list_all$defense[order(names(parameter_list_all$defense))]
-  parameter_list_all$attack <-parameter_list_all$attack[order(names(parameter_list_all$attack))]
-
-  # rescale dispersion
-  if ('dispersion' %in% names(parameter_list_all)){
-    parameter_list_all$dispersion <- exp(parameter_list_all$dispersion)
-  }
-
-  # rescale sigma
-  if ('sigma' %in% names(parameter_list_all)){
-    parameter_list_all$sigma <- exp(parameter_list_all$sigma)
-  }
+  parameter_list$defense <- parameter_list$defense[order(names(parameter_list$defense))]
+  parameter_list$attack <- parameter_list$attack[order(names(parameter_list$attack))]
 
   # maxgoal. Useful for later predictions.
-  maxgoal <- max(max(goals1), max(goals2))
+  maxgoal <- max(all_goals)
 
-  out <- list(parameters = parameter_list_all,
-              loglikelihood=loglikelihood, npar_est=npar_est,
+  out <- list(parameters = parameter_list,
+              loglikelihood = loglikelihood, npar_est=npar_est,
               npar_fixed = npar_fixed, aic=aic, r_squared=r_squared,
               all_teams = all_teams, ngames = ngames,
-              est_time=est_time, model = model, optim_res=optim_res,
-              fixed_params=fixed_params,
-              maxgoal = maxgoal)
+              est_time = est_time, model = model,
+              fixed_params = fixed_params,
+              converged = converged,
+              maxgoal = maxgoal,
+              fitter = fitter)
 
   class(out) <- 'goalmodel'
 
   return(out)
 
 }
-
-
-
-
 

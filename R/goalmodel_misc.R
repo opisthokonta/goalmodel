@@ -9,7 +9,7 @@
 #' @export
 summary.goalmodel <- function(object, ...){
 
-  if (object$optim_res$convergence == 0){
+  if (object$converged){
     cat(sprintf('Model sucsessfully fitted in %.2f seconds\n\n', object$est_time))
   } else {
     cat('Model failed to converge. Parameter estimates are unreliable.\n\n')

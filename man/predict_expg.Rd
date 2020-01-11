@@ -7,16 +7,28 @@
 \alias{predict_ou}
 \title{Predict methods for goalmodel Fits}
 \usage{
-predict_expg(model_fit, team1, team2, x1 = NULL, x2 = NULL,
-  return_df = FALSE)
+predict_expg(model_fit, team1, team2, x1 = NULL, x2 = NULL, return_df = FALSE)
 
 predict_goals(model_fit, team1, team2, x1 = NULL, x2 = NULL)
 
-predict_result(model_fit, team1, team2, x1 = NULL, x2 = NULL,
-  return_df = FALSE)
+predict_result(
+  model_fit,
+  team1,
+  team2,
+  x1 = NULL,
+  x2 = NULL,
+  return_df = FALSE
+)
 
-predict_ou(model_fit, team1, team2, x1 = NULL, x2 = NULL, ou = 2.5,
-  return_df = FALSE)
+predict_ou(
+  model_fit,
+  team1,
+  team2,
+  x1 = NULL,
+  x2 = NULL,
+  ou = 2.5,
+  return_df = FALSE
+)
 }
 \arguments{
 \item{model_fit}{A goalmodel object.}
