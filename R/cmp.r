@@ -10,8 +10,8 @@
 #'
 #' When upsilon is greater than 1, the variance is lower than the expectation,
 #' while it is larger than expectation when upsilon is in the 0-1 range. The
-#' variance equals expectation when upsilon = 1, and then the same as the
-#' Poisson distribution.
+#' variance equals expectation when upsilon = 1, and then the distribution is
+#' the same as the Poisson distribution.
 #'
 #' There is no general closed form for the expectation for the CMP
 #' distribution, and so it must be approximated. Two methods are available
@@ -40,6 +40,10 @@
 #'  \item{Shmueli et al (2005) A useful distribution for fitting discrete data: revival of the Conway–Maxwell–Poisson distribution }
 #'  \item{Huang (2017) Mean-parametrized Conway–Maxwell–Poisson regression models for dispersed counts}
 #' }
+#'
+#' @seealso
+#'\code{\link{upsilon.ml}} for a function for estimating the dispersion parameter.
+
 #' @name CMP
 NULL
 
@@ -91,6 +95,7 @@ dCMP <- function(x, lambda, upsilon, log=FALSE, error=0.01){
 }
 
 #' @rdname CMP
+#' @export
 pCMP <- function(x, lambda, upsilon, error=0.01, lower.tail=TRUE){
 
   stopifnot(any(!(lambda >= 1 & upsilon == 0)),
@@ -191,3 +196,53 @@ lambdaCMP <- function(mu, upsilon, method='sum', error = 0.01){
 }
 
 
+#' Estimate theta of the he Conway-Maxwell-Poisson Distribution
+#'
+#' Given the estimated rate (lambda) or mean (mu) vector, estimate dispersion paramter (uspilon) of
+#' the Conway-Maxwell-Poisson Distribution.
+#'
+#' @param x vector of non-negative integers.
+#' @param parameters vector of non-negative rate parameters (lambda) or mean paramters (mu).
+#' @param param_type string indicating whether the vector given to the parameters
+#' argument is lambda (default) or mu.
+#' @param method character; either 'fast' or 'sum'. Passed on to the lambdaCMP function
+#' if param_type = 'mu'.
+#' @param lower the lower bound for upsilon
+#' @param upper the upper bound for upsilon
+#'
+#'@seealso
+#'\code{\link{CMP}} for more functions and details regarding the Conway-Maxwell-Poisson Distribution.
+#'
+#' @export
+upsilon.ml <- function(x, parameters, param_type = 'lambda', method = 'sum',
+                       lower=0.7, upper=4){
+
+  stopifnot(param_type %in% c('lambda', 'mu'))
+
+  # The negative log-likelihood
+  obj_func <- function(par, x, params, is_lambda = TRUE, lmethod='sum'){
+
+    if (is_lambda == FALSE){
+      params <- lambdaCMP(mu = params, upsilon = par, method=lmethod)
+    }
+
+    sum(dCMP(x, lambda = params, upsilon = par, log=TRUE) * -1)
+  }
+
+  is_lambda <- param_type == 'lambda'
+
+  upsilon_init <- 1
+  optim_res <- stats::optim(upsilon_init, fn=obj_func,
+                             x=x, params=parameters,
+                             is_lambda = is_lambda,
+                             lmethod=method,
+                             method='Brent', lower=lower, upper=upper)
+
+  converged <- optim_res$convergence == 0
+
+  if (!converged){
+    warning('Did not converge (optim). Parameter estimates are unreliable.')
+  }
+
+  return(optim_res$par)
+}

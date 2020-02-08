@@ -43,8 +43,8 @@ paramater mu (lambdaCMP).
 \details{
 When upsilon is greater than 1, the variance is lower than the expectation,
 while it is larger than expectation when upsilon is in the 0-1 range. The
-variance equals expectation when upsilon = 1, and then the same as the
-Poisson distribution.
+variance equals expectation when upsilon = 1, and then the distribution is
+the same as the Poisson distribution.
 
 There is no general closed form for the expectation for the CMP
 distribution, and so it must be approximated. Two methods are available
@@ -67,3 +67,6 @@ left hand side sum is approximated.
 }
 }
 
+\seealso{
+\code{\link{upsilon.ml}} for a function for estimating the dispersion parameter.
+}
