@@ -9,6 +9,23 @@ install.packages("devtools")
 devtools::install_github("opisthokonta/goalmodel")
 ```
 
+Whats new
+=========
+
+### Version 0.2
+
+-   New faster model fitting. Some models use the built-in glm.fit function to estimate the attack and defence parameters. If the model can not be estimated with the glm.fit function, the results from glm.fit is used as starting values for subsequent fitting. All this should give faster estimation.
+
+-   Can now fit Conway-Maxwell-Poisson (CMP) models. This is still a bit slow and unstable, so two-step estimation is recomended. See the section on the CMP below for more info. Several new functions relted to the CMP model is also available if you want to use them for additional modelling.
+
+-   The model = 'ls' option is removed. The results from this should be the same as model = 'gaussian', which is still available.
+
+-   Some changes to what is returned by the goalmodel function, but this should not cause much problems since it is only related to some of the more technical parts of the output.
+
+### Version 0.1
+
+-   Initial release
+
 The default model
 =================
 
@@ -27,7 +44,7 @@ Y<sub>2</sub> ∼ Poisson(λ<sub>2</sub>)
 The default model can be modified in numerous ways as detailed in this vignette.
 
 Fitting the default model
-=========================
+-------------------------
 
 Models are fitted with the goalmodel function. The minimum required input is vectors containing the number of goals scored and the names of the teams. Here I use data from the excellent [engsoccerdata](https://cran.r-project.org/web/packages/engsoccerdata/) package.
 
@@ -52,7 +69,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 1.01 seconds
+    ## Model sucsessfully fitted in 0.02 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -60,34 +77,34 @@ summary(gm_res)
     ## Model                     Poisson 
     ## 
     ## Log Likelihood            -1088.99 
-    ## AIC                        2259.98 
+    ## AIC                        2257.98 
     ## R-squared                  0.18 
-    ## Parameters (estimated)       41 
+    ## Parameters (estimated)       40 
     ## Parameters (fixed)            0 
     ## 
     ## Team                      Attack   Defense
-    ## Arsenal                    0.30     0.03 
-    ## Aston Villa               -0.39    -0.01 
-    ## Blackburn Rovers          -0.10    -0.41 
-    ## Bolton Wanderers          -0.15    -0.40 
-    ## Chelsea                    0.17     0.10 
-    ## Everton                   -0.10     0.26 
-    ## Fulham                    -0.13     0.01 
-    ## Liverpool                 -0.16     0.26 
-    ## Manchester City            0.51     0.53 
-    ## Manchester United          0.47     0.41 
-    ## Newcastle United           0.02     0.01 
-    ## Norwich City              -0.04    -0.25 
-    ## Queens Park Rangers       -0.23    -0.24 
-    ## Stoke City                -0.42    -0.01 
-    ## Sunderland                -0.20     0.12 
-    ## Swansea City              -0.22     0.02 
-    ## Tottenham Hotspur          0.18     0.21 
-    ## West Bromwich Albion      -0.19    -0.00 
-    ## Wigan Athletic            -0.25    -0.18 
-    ## Wolverhampton Wanderers   -0.28    -0.45 
+    ## Arsenal                    0.36     0.03 
+    ## Aston Villa               -0.33    -0.01 
+    ## Blackburn Rovers          -0.04    -0.41 
+    ## Bolton Wanderers          -0.09    -0.39 
+    ## Chelsea                    0.23     0.10 
+    ## Everton                   -0.04     0.26 
+    ## Fulham                    -0.07     0.02 
+    ## Liverpool                 -0.10     0.26 
+    ## Manchester City            0.57     0.54 
+    ## Manchester United          0.53     0.41 
+    ## Newcastle United           0.08     0.01 
+    ## Norwich City               0.02    -0.25 
+    ## Queens Park Rangers       -0.17    -0.24 
+    ## Stoke City                -0.36    -0.01 
+    ## Sunderland                -0.14     0.12 
+    ## Swansea City              -0.16     0.02 
+    ## Tottenham Hotspur          0.24     0.22 
+    ## West Bromwich Albion      -0.13     0.00 
+    ## Wigan Athletic            -0.19    -0.17 
+    ## Wolverhampton Wanderers   -0.22    -0.45 
     ## -------
-    ## Intercept                  0.19 
+    ## Intercept                  0.13 
     ## Home field advantage       0.27
 
 The Dixon-Coles model
@@ -105,7 +122,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.14 seconds
+    ## Model sucsessfully fitted in 1.10 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -113,34 +130,34 @@ summary(gm_res_dc)
     ## Model                     Poisson 
     ## 
     ## Log Likelihood            -1087.36 
-    ## AIC                        2258.72 
+    ## AIC                        2256.72 
     ## R-squared                  0.18 
-    ## Parameters (estimated)       42 
+    ## Parameters (estimated)       41 
     ## Parameters (fixed)            0 
     ## 
     ## Team                      Attack   Defense
-    ## Arsenal                    0.31     0.03 
-    ## Aston Villa               -0.37    -0.03 
-    ## Blackburn Rovers          -0.12    -0.41 
-    ## Bolton Wanderers          -0.14    -0.40 
-    ## Chelsea                    0.17     0.09 
-    ## Everton                   -0.12     0.27 
-    ## Fulham                    -0.13     0.01 
-    ## Liverpool                 -0.17     0.25 
-    ## Manchester City            0.50     0.55 
-    ## Manchester United          0.46     0.43 
-    ## Newcastle United           0.03     0.00 
-    ## Norwich City              -0.04    -0.25 
-    ## Queens Park Rangers       -0.24    -0.23 
-    ## Stoke City                -0.42    -0.01 
-    ## Sunderland                -0.20     0.12 
-    ## Swansea City              -0.21     0.01 
-    ## Tottenham Hotspur          0.18     0.21 
-    ## West Bromwich Albion      -0.20     0.00 
-    ## Wigan Athletic            -0.25    -0.17 
-    ## Wolverhampton Wanderers   -0.27    -0.46 
+    ## Arsenal                    0.37     0.03 
+    ## Aston Villa               -0.31    -0.03 
+    ## Blackburn Rovers          -0.06    -0.41 
+    ## Bolton Wanderers          -0.08    -0.40 
+    ## Chelsea                    0.23     0.09 
+    ## Everton                   -0.06     0.27 
+    ## Fulham                    -0.07     0.01 
+    ## Liverpool                 -0.11     0.25 
+    ## Manchester City            0.56     0.55 
+    ## Manchester United          0.52     0.43 
+    ## Newcastle United           0.10     0.00 
+    ## Norwich City               0.02    -0.25 
+    ## Queens Park Rangers       -0.18    -0.23 
+    ## Stoke City                -0.36    -0.01 
+    ## Sunderland                -0.14     0.12 
+    ## Swansea City              -0.15     0.01 
+    ## Tottenham Hotspur          0.24     0.21 
+    ## West Bromwich Albion      -0.14     0.00 
+    ## Wigan Athletic            -0.19    -0.17 
+    ## Wolverhampton Wanderers   -0.21    -0.46 
     ## -------
-    ## Intercept                  0.18 
+    ## Intercept                  0.12 
     ## Home field advantage       0.27 
     ## Dixon-Coles adj. (rho)    -0.13
 
@@ -171,7 +188,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 1.31 seconds
+    ## Model sucsessfully fitted in 0.66 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -179,36 +196,36 @@ summary(gm_res_rs)
     ## Model                     Poisson 
     ## 
     ## Log Likelihood            -1088.99 
-    ## AIC                        2261.98 
+    ## AIC                        2259.98 
     ## R-squared                  0.18 
-    ## Parameters (estimated)       42 
+    ## Parameters (estimated)       41 
     ## Parameters (fixed)            0 
     ## 
     ## Team                      Attack   Defense
-    ## Arsenal                    0.31     0.04 
-    ## Aston Villa               -0.40    -0.02 
-    ## Blackburn Rovers          -0.12    -0.43 
-    ## Bolton Wanderers          -0.16    -0.41 
-    ## Chelsea                    0.18     0.11 
-    ## Everton                   -0.09     0.26 
-    ## Fulham                    -0.13     0.01 
-    ## Liverpool                 -0.16     0.26 
-    ## Manchester City            0.54     0.57 
-    ## Manchester United          0.50     0.44 
-    ## Newcastle United           0.03     0.01 
-    ## Norwich City              -0.04    -0.26 
-    ## Queens Park Rangers       -0.24    -0.25 
-    ## Stoke City                -0.43    -0.02 
-    ## Sunderland                -0.20     0.12 
-    ## Swansea City              -0.22     0.01 
-    ## Tottenham Hotspur          0.19     0.23 
-    ## West Bromwich Albion      -0.20    -0.01 
-    ## Wigan Athletic            -0.27    -0.19 
-    ## Wolverhampton Wanderers   -0.30    -0.47 
+    ## Arsenal                    0.36     0.03 
+    ## Aston Villa               -0.33    -0.02 
+    ## Blackburn Rovers          -0.05    -0.42 
+    ## Bolton Wanderers          -0.09    -0.40 
+    ## Chelsea                    0.23     0.10 
+    ## Everton                   -0.04     0.26 
+    ## Fulham                    -0.07     0.01 
+    ## Liverpool                 -0.10     0.26 
+    ## Manchester City            0.58     0.54 
+    ## Manchester United          0.54     0.42 
+    ## Newcastle United           0.09     0.01 
+    ## Norwich City               0.02    -0.25 
+    ## Queens Park Rangers       -0.17    -0.24 
+    ## Stoke City                -0.36    -0.02 
+    ## Sunderland                -0.14     0.12 
+    ## Swansea City              -0.16     0.02 
+    ## Tottenham Hotspur          0.24     0.22 
+    ## West Bromwich Albion      -0.13    -0.00 
+    ## Wigan Athletic            -0.20    -0.18 
+    ## Wolverhampton Wanderers   -0.23    -0.46 
     ## -------
-    ## Intercept                  0.19 
+    ## Intercept                  0.13 
     ## Home field advantage       0.27 
-    ## Rue-Salvesen adj. (gamma)  0.06
+    ## Rue-Salvesen adj. (gamma)  0.02
 
 Making predictions
 ==================
@@ -225,9 +242,9 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
     ##                               team1     team2    expg1     expg2
-    ## Arsenal                     Arsenal    Fulham 2.119342 1.0249899
-    ## Manchester United Manchester United   Chelsea 2.291206 0.9289649
-    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069256 1.5093093
+    ## Arsenal                     Arsenal    Fulham 2.119358 1.0243004
+    ## Manchester United Manchester United   Chelsea 2.291612 0.9288743
+    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069974 1.5090408
 
 We can also get the probabilities of the final outcome (team1 win, draw, team2 win) with the predict\_result function.
 
@@ -236,9 +253,9 @@ predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE
 ```
 
     ##               team1     team2        p1        pd        p2
-    ## 1           Arsenal    Fulham 0.6119676 0.2266340 0.1613984
-    ## 2 Manchester United   Chelsea 0.6684588 0.2051687 0.1263725
-    ## 3  Bolton Wanderers Liverpool 0.2522542 0.2902563 0.4574895
+    ## 1           Arsenal    Fulham 0.6121100 0.2266543 0.1612357
+    ## 2 Manchester United   Chelsea 0.6685366 0.2051625 0.1263009
+    ## 3  Bolton Wanderers Liverpool 0.2524546 0.2903231 0.4572222
 
 Other functions are predict\_goals which return matrices of the probabilities of each scoreline, and predict\_ou for getting the probabilities for over/under total scores.
 
@@ -294,12 +311,17 @@ gm_res_hfa$parameters$beta
 ```
 
     ##       hfa 
-    ## 0.2679329
+    ## 0.2680093
+
+Alternatives to the Poisson model
+=================================
+
+By the default the Poisson distribution is used to model the goals. The Poisson distribution has a lot of nice properties, but also some limitations. For instance there is only one parameter that describes both the expected value (the average) and the variance. It is also limited to integer number of goals.
 
 The Negative Binomial model
-===========================
+---------------------------
 
-All other models in this vignette has assumed that the number of goals scored are distributed according to the Poisson distribution. The Poisson distribution has a lot of nice properties, but also some limitations. For inctance there is only one parameter that describes both the expected value (the average) and the variance. The Negative Binomial (NB) model is a more flexible model that allows higher variance than the Poisson mode. The NB model introduces another parameter called the "dispersion" parameter. This parameter has to be positive, and the greater the value of this parameter, the more variance there is relative to the Poisson model with the same *λ* (called overdispersion). When the parameter is close to zero, it the result is approximately the Poisson. The NB model can be fitted by setting the "model" argument to 'negbin'. In this example the dispersion parameter is close to zero.
+The Negative Binomial (NB) model is a more flexible model that allows higher variance than the Poisson model. The NB model introduces another parameter called the "dispersion" parameter. This parameter has to be positive, and the greater the value of this parameter, the more variance there is relative to the Poisson model with the same *λ* (called overdispersion). When the parameter is close to zero, it the result is approximately the Poisson. The NB model can be fitted by setting the "model" argument to 'negbin'. In this example the dispersion parameter is close to zero.
 
 ``` r
 # Fit the model with overdispersion.
@@ -312,7 +334,35 @@ gm_res_nb <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 gm_res_nb$parameters$dispersion
 ```
 
-    ## [1] 4.333503e-05
+    ## [1] 4.517137e-05
+
+The Conway-Maxwell-Poisson model
+--------------------------------
+
+While the Negative Binomial model is more flexible than the Poisson model in that it can model excess variance, the Conway-Maxwell-Poisson (CMP) model is even more flexible. The CMP can be both over-dispersed and under-dispersed. The dispersion parameter controlling the amount of dispersion is called *υ* (upsilon), and behaves a bit different than the dispersion parameter in the Negative Binomial. When *υ* = 1 the model becomes the Poisson model. If *υ* is greater than 1 the variances is less than the expectation, and we have under-dispersion. If *υ* is between 0 and 1, there is over-dipsersion.
+
+Unfortunately, the CMP distribution is a bit difficult to work with for several reasons. It is not built-in in R, so I have implemented some of the relevant distribution functions (called dCMP and pCMP). It also has a normalizing constant that is a bit difficult to compute, and must be approximated. The distribution functions have an argument called 'error' that determines the amount of approximation, and has a default that is precise enough for our needs.
+
+The perhaps most confusing thing with the CMP model is that it has a parameter called *λ*, and this parameter does NOT behave like the *λ* in the Poisson or NB models. In those models the lambda is the same as the expectation, but this is not the case for the CMP. To make matters worse, there is no simple forumla for finding the expectation for a given set of values of *λ* and *υ*, although an approximate formula exists. Therefore I have included two functions to compute the expectation (eCMP) and another to find the *λ* for a given set of expectation and dipsersion (lambdaCMP).
+
+To fit and use a model with the CMP distribution is easy. As in the NB and gaussian models, you can just set model == 'cmp' in the goalmodel function. However, because of all the complications with this model, it is really slow to estimate the parameters. Under the hood, I have tried to speed things up by using approximations where I could, but it is still slow. I therefore recomend using two-step estimation to fit this model. If you fit this model, and see that there is overdispersion (dispersion &lt; 1), I recomend you use the NB model instead.
+
+``` r
+# Fit the CMP model, with the attack and defence parameters fixed to the values in the default model.
+gm_res_cmp_2s <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                     team1 = england_2011$home, team2=england_2011$visitor, 
+                     model='cmp', fixed_params = gm_res$parameters)
+
+# Take a look at the dispersion. It indicates under-dispersion.
+gm_res_cmp_2s$parameters$dispersion
+```
+
+    ## [1] 1.122462
+
+The Gaussian model
+------------------
+
+It is also possible to use model = 'gaussian' to fit models using the Gaussian (or normal) distribution. This option is intended to be used when the scores are decimal numbers. This could be useful if instead of actual goals scored, you wanted to fit a model to expected goals. You can't combine this with the Dixon-Coles adjustment, except perhaps using a two step procedure. If you use a Gaussian model to make predictions, the Poisson distribution will be used, and a warning will be given.
 
 Fixed parameters - Two step estimation.
 =======================================
@@ -333,13 +383,13 @@ gm_res_dc_2s <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgo
 gm_res_dc_2s$parameters$rho
 ```
 
-    ## [1] -0.1261845
+    ## [1] -0.1261445
 
 ``` r
 gm_res_dc$parameters$rho
 ```
 
-    ## [1] -0.1334634
+    ## [1] -0.1336961
 
 Offset - Varying playing time
 =============================
@@ -406,7 +456,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.17 seconds
+    ## Model sucsessfully fitted in 1.08 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -414,35 +464,35 @@ summary(gm_res_offset)
     ## Model                     Poisson 
     ## 
     ## Log Likelihood            -1091.30 
-    ## AIC                        2268.60 
+    ## AIC                        2266.60 
     ## R-squared                  0.18 
-    ## Parameters (estimated)       43 
+    ## Parameters (estimated)       42 
     ## Parameters (fixed)            1 
     ## 
     ## Team                      Attack   Defense
-    ## Arsenal                    0.34     0.05 
-    ## Aston Villa               -0.35     0.01 
-    ## Blackburn Rovers          -0.07    -0.39 
-    ## Bolton Wanderers          -0.11    -0.38 
-    ## Chelsea                    0.20     0.12 
-    ## Everton                   -0.06     0.28 
-    ## Fulham                    -0.10     0.03 
-    ## Liverpool                 -0.13     0.28 
-    ## Manchester City            0.55     0.55 
-    ## Manchester United          0.51     0.43 
-    ## Middlesbrough             -0.58    -0.40 
-    ## Newcastle United           0.06     0.03 
-    ## Norwich City               0.00    -0.23 
-    ## Queens Park Rangers       -0.19    -0.22 
-    ## Stoke City                -0.38     0.01 
-    ## Sunderland                -0.16     0.14 
-    ## Swansea City              -0.18     0.04 
-    ## Tottenham Hotspur          0.21     0.23 
-    ## West Bromwich Albion      -0.16     0.02 
-    ## Wigan Athletic            -0.22    -0.16 
-    ## Wolverhampton Wanderers   -0.25    -0.43 
+    ## Arsenal                    0.39     0.05 
+    ## Aston Villa               -0.30     0.01 
+    ## Blackburn Rovers          -0.02    -0.39 
+    ## Bolton Wanderers          -0.06    -0.38 
+    ## Chelsea                    0.26     0.12 
+    ## Everton                   -0.01     0.28 
+    ## Fulham                    -0.04     0.03 
+    ## Liverpool                 -0.08     0.28 
+    ## Manchester City            0.60     0.55 
+    ## Manchester United          0.56     0.43 
+    ## Middlesbrough             -0.53    -0.40 
+    ## Newcastle United           0.11     0.03 
+    ## Norwich City               0.05    -0.23 
+    ## Queens Park Rangers       -0.14    -0.22 
+    ## Stoke City                -0.33     0.01 
+    ## Sunderland                -0.11     0.14 
+    ## Swansea City              -0.13     0.04 
+    ## Tottenham Hotspur          0.27     0.23 
+    ## West Bromwich Albion      -0.11     0.02 
+    ## Wigan Athletic            -0.17    -0.16 
+    ## Wolverhampton Wanderers   -0.20    -0.43 
     ## -------
-    ## Intercept                  0.17 
+    ## Intercept                  0.12 
     ## Home field advantage       0.27 
     ## Offset                     1.00
 
@@ -465,23 +515,18 @@ predict_result(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
     ##               team1     team2        p1        pd        p2
-    ## 1           Arsenal    Fulham 0.6195517 0.2036457 0.1768027
-    ## 2 Manchester United   Chelsea 0.6735208 0.1844373 0.1420419
-    ## 3  Bolton Wanderers Liverpool 0.2611863 0.2567973 0.4820164
+    ## 1           Arsenal    Fulham 0.6197118 0.2035688 0.1767195
+    ## 2 Manchester United   Chelsea 0.6736194 0.1843756 0.1420050
+    ## 3  Bolton Wanderers Liverpool 0.2612112 0.2567706 0.4820183
 
 ``` r
 predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
     ##               team1     team2        p1        pd        p2
-    ## 1           Arsenal    Fulham 0.6045881 0.2084048 0.1870071
-    ## 2 Manchester United   Chelsea 0.6538287 0.1918135 0.1543579
-    ## 3  Bolton Wanderers Liverpool 0.2780517 0.2603784 0.4615699
-
-Miscellaneous
-=============
-
-It is also possible to use model = 'gaussian' to fit models using the Gaussian (or normal) distribution. This option is intended to be used when the scores are decimal numbers. This could be useful if instead of actual goals scored, you wanted to fit a model to expected goals. You can't combine this with the Dixon-Coles adjustment, except perhaps using a two step procedure, first estimating the attack and defence parameters using expected goals, then estimating the Dixon-Coles adjustment using actual goals. If you use a Gaussian model to make predictions, the Poisson distribution will be used, and a warning will be given.
+    ## 1           Arsenal    Fulham 0.6047391 0.2083325 0.1869284
+    ## 2 Manchester United   Chelsea 0.6539250 0.1917532 0.1543218
+    ## 3  Bolton Wanderers Liverpool 0.2780789 0.2603511 0.4615700
 
 Other packages
 ==============
