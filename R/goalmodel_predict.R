@@ -16,7 +16,7 @@
 #' @param x1 Additional covariates to be used for making predictions.
 #' @param x2 Additional covariates to be used for making predictions.
 #' @param ou Numeric, defining the over/under. Default is 2.5.
-#' @param return_df Wether a data.frame should be returned.
+#' @param return_df Whether a data.frame should be returned.
 #'
 #' @export
 predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = FALSE){
@@ -51,8 +51,8 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
 
-  if (model_fit$model %in% c('gaussian', 'ls')){
-    warning('Model is Gaussian or ls. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
+  if (model_fit$model %in% c('gaussian')){
+    warning('Model is Gaussian. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
   }
 
   ## predict the expected goals.
@@ -61,10 +61,10 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
 
   # find the upper limit of where to evaluate the probability function.
   upper_prob <- 0.999
-  if (model_fit$model %in% c('poisson', 'gaussian', 'ls')){
+  if (model_fit$model %in% c('poisson', 'gaussian', 'cmp')){
+    # TODO: This is probably not optimal if CMP is over-dispersed.
     maxgoal <- stats::qpois(upper_prob, lambda=model_fit$maxgoal)
-  }
-  else if (model_fit$model == 'negbin'){
+  } else if (model_fit$model == 'negbin'){
     maxgoal <- stats::qnbinom(upper_prob, mu=model_fit$maxgoal, size = 1 / model_fit$parameters$dispersion)
   }
   maxgoal <- max(10, maxgoal)
@@ -76,11 +76,18 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
   }
 
   for (ii in 1:length(team1)){
-    if (model_fit$model %in% c('poisson', 'gaussian', 'ls')){
+    if (model_fit$model %in% c('poisson', 'gaussian')){
       res_tmp <- stats::dpois(0:maxgoal, expg$expg1[ii]) %*% t(stats::dpois(0:maxgoal, expg$expg2[ii]))
     } else if (model_fit$model == 'negbin'){
       res_tmp <- stats::dnbinom(0:maxgoal, mu = expg$expg1[ii], size = 1 / model_fit$parameters$dispersion) %*%
         t(stats::dnbinom(0:maxgoal, mu = expg$expg2[ii], size = 1 / model_fit$parameters$dispersion))
+    } else if (model_fit$model == 'cmp'){
+        # Convert the expected goals in to CMP-lambda.
+        ll1 <- lambdaCMP(mu = expg$expg1[ii], upsilon = model_fit$parameters$dispersion, method = 'fast')
+        ll2 <- lambdaCMP(mu = expg$expg2[ii], upsilon = model_fit$parameters$dispersion, method = 'fast')
+
+        res_tmp <- dCMP(0:maxgoal, lambda =ll1, upsilon = model_fit$parameters$dispersion) %*%
+        t(dCMP(0:maxgoal, lambda =ll2, upsilon = model_fit$parameters$dispersion))
     }
 
     # Dixon-Coles adjustemt.
@@ -152,8 +159,8 @@ predict_ou <- function(model_fit, team1, team2,
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
 
-  if (model_fit$model %in% c('gaussian', 'ls')){
-    warning('Model is Gaussian or ls. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
+  if (model_fit$model %in% c('gaussian')){
+    warning('Model is Gaussian Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
   }
 
   team1 <- as.character(team1)
@@ -164,18 +171,21 @@ predict_ou <- function(model_fit, team1, team2,
   }
 
   ee <- lambda_pred(model_fit$parameters, team1, team2, x1, x2)
+  exp_goal_tot <- ee$expg1 + ee$expg2
 
   if (model_fit$model %in% c('poisson', 'gaussian')){
-    exp_goal_tot <- ee$expg1 + ee$expg2
     prob_under <- stats::ppois(floor(ou), lambda = exp_goal_tot)
-    prob_over <- 1 - prob_under
   } else if (model_fit$model == 'negbin'){
-    exp_goal_tot <- ee$expg1 + ee$expg2
     prob_under <- stats::pnbinom(floor(ou), mu = exp_goal_tot,
                           size = 1 / model_fit$parameters$dispersion)
-    prob_over <- 1 - prob_under
+  } else if (model_fit$model == 'cmp'){
+    # Convert expected goals to CMP-lambda
+    lltot <- lambdaCMP(mu = exp_goal_tot, upsilon = model_fit$parameters$dispersion,
+                       method = 'fast')
+    prob_under <- pCMP(floor(ou), lambda = lltot, upsilon = model_fit$parameters$dispersion)
   }
 
+  prob_over <- 1 - prob_under
 
   if (return_df){
     out <- data.frame(team1 = team1, team2 = team2,

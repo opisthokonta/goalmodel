@@ -27,6 +27,8 @@ summary.goalmodel <- function(object, ...){
     cat(sprintf('%-25.25s %s \n', 'Model', 'Neg. Binom.'))
   } else if (object$model == 'gaussian'){
     cat(sprintf('%-25.25s %s \n', 'Model', 'Gaussian'))
+  } else if (object$model == 'cmp'){
+    cat(sprintf('%-25.25s %s \n', 'Model', 'CMP'))
   }
 
   cat('\n')
@@ -60,9 +62,14 @@ summary.goalmodel <- function(object, ...){
     cat(sprintf('%-25.25s % 2.2f \n', 'Dixon-Coles adj. (rho)', object$parameters$rho))
   }
 
-  if ('dispersion' %in% names(object$parameters)){
+  if ('dispersion' %in% names(object$parameters) & object$model == 'negbin'){
     cat(sprintf('%-25.25s % 2.2f \n', 'Dispersion (Neg. Binom.)', object$parameters$dispersion))
   }
+
+  if ('dispersion' %in% names(object$parameters) & object$model == 'cmp'){
+    cat(sprintf('%-25.25s % 2.2f \n', 'Dispersion (CMP)', object$parameters$dispersion))
+  }
+
 
   if ('sigma' %in% names(object$parameters)){
     cat(sprintf('%-25.25s % 2.2f \n', 'Sigma (Gaussian)', object$parameters$sigma))

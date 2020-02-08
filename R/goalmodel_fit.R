@@ -175,7 +175,7 @@ negloglik <- function(params, goals1, goals2, team1, team2,
   # relist, to make things easier.
   plist <- utils::relist(params, param_skeleton)
 
-  # TODO: There is a bug here, if one of the teams with
+  # TODO: There is a bug here, i think, if one of the teams with
   # a fixed attack or defense parameter is the first team
   # in the all_teams vector.
 
@@ -210,6 +210,22 @@ negloglik <- function(params, goals1, goals2, team1, team2,
   } else if (model == 'gaussian'){
     log_lik_1 <- stats::dnorm(goals1, mean = expg$expg1, sd = exp(plist$sigma), log=TRUE)
     log_lik_2 <- stats::dnorm(goals2, mean = expg$expg2, sd = exp(plist$sigma), log=TRUE)
+  } else if (model == 'cmp'){
+    exp_log_upsilon <- exp(plist$dispersion)
+    # TOOD
+    # This is a dirty hack essentially setting har upper and lower
+    # bounds for the the dispersion parameter.
+    if (exp_log_upsilon < 0.7){return(Inf)}
+    if (exp_log_upsilon > 1.7){return(Inf)}
+
+    log_lik_1 <- dCMP(goals1, lambda = lambdaCMP(mu=expg$expg1,
+                                      upsilon = exp_log_upsilon,
+                                      method = 'fast'),
+                             upsilon = exp_log_upsilon, log=TRUE)
+    log_lik_2 <- dCMP(goals2, lambda = lambdaCMP(mu=expg$expg2,
+                                                upsilon = exp_log_upsilon,
+                                                method = 'fast'),
+                             upsilon = exp_log_upsilon, log=TRUE)
   }
 
   log_lik_terms <- log_lik_1 + log_lik_2
@@ -303,7 +319,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
     xmat <- cbind(xmat, additional_xmat)
   }
 
-  if (model == 'poisson'){
+  if (model %in% c('poisson', 'negbin', 'cmp')){
     glm_family <- stats::poisson()
   } else if (model == 'gaussian'){
     glm_family <- stats::gaussian()
@@ -444,7 +460,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
             length(team1) == length(team2),
             length(goals1) >= 1,
             is.numeric(goals1), is.numeric(goals2),
-            model %in% c('poisson', 'negbin', 'gaussian'))
+            model %in% c('poisson', 'negbin', 'gaussian', 'cmp'))
 
   if (dc){
     # Check if there is any data suitable for DC adjustment.
@@ -510,9 +526,6 @@ goalmodel <- function(goals1, goals2, team1, team2,
   # needed for fitting the rest of the models. This step should be skiped
   # to save computing time.
 
-  # TODO: Gaussian/ls models can with a few modification also be fitted with this
-  # approach.
-
   # TODO: Maybe even negbin models can be fitted with this approach, with
   # the glm.nb() function from the MASS pacakge.
 
@@ -562,12 +575,19 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
     if (model == 'negbin'){
       # on log scale during estimation.
+      # start with a value close to 0, which is almost Poisson.
       parameter_list_init$dispersion <- -10
     }
 
     if (model == 'gaussian'){
       # on log scale during estimation.
       parameter_list_init$sigma <- log(parameter_list_init$sigma)
+    }
+
+    if (model == 'cmp'){
+      # on log scale during estimation.
+      # start with a value exp(0)=1, which is the same as Poisson.
+      parameter_list_init$dispersion <- 0
     }
 
     # Deal with fixed parameters.
@@ -712,6 +732,15 @@ goalmodel <- function(goals1, goals2, team1, team2,
       sigma0_tmp <- sqrt(sum(rep(weights, 2) * (all_goals - mean_goals)^2))
       loglikelihood_saturated <- NA
       loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
+    }
+  } else if (model == 'cmp'){
+    ## TODO
+    if (is.null(weights)){
+      loglikelihood_saturated <- NA
+      loglikelihood_null <- NA
+    } else {
+      loglikelihood_saturated <- NA
+      loglikelihood_null <- NA
     }
   }
 

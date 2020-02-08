@@ -41,7 +41,7 @@ predict_ou(
 
 \item{x2}{Additional covariates to be used for making predictions.}
 
-\item{return_df}{Wether a data.frame should be returned.}
+\item{return_df}{Whether a data.frame should be returned.}
 
 \item{ou}{Numeric, defining the over/under. Default is 2.5.}
 }

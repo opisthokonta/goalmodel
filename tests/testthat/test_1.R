@@ -4,10 +4,10 @@ require(engsoccerdata)
 require(dplyr)
 
 # Load data from English Premier League, 2011-12 season.
-england %>%
-  filter(Season %in% c(2011),
+engsoccerdata::england %>%
+  dplyr::filter(Season %in% c(2011),
          tier==c(1)) %>%
-  mutate(Date = as.Date(Date),
+  dplyr::mutate(Date = as.Date(Date),
          home = as.character(home),
          visitor= as.character(visitor)) -> england_2011
 
@@ -158,6 +158,82 @@ test_that("Fitting Gaussian model", {
   expect_equal(names(gm_res_gaussian$parameters$attack), names(gm_res_gaussian$parameters$defense))
   expect_equal(gm_res_gaussian$converged, TRUE)
 })
+
+
+context("CMP functions")
+
+dcmp_vec <- dCMP(x=0:6, lambda=4.4, upsilon = 1.2)
+pcmp_vec <- pCMP(x=6, lambda=4.4, upsilon = 1.2)
+dp_diff <- sum(dcmp_vec) - pcmp_vec
+
+test_that("CMP", {
+  expect_true(all(dcmp_vec >= 0))
+  expect_true(all(dcmp_vec <= 1))
+  expect_true(pcmp_vec >= 0)
+  expect_true(pcmp_vec <= 1)
+  expect_true(dp_diff < 0.0001)
+})
+
+
+
+
+context("Model fitting - CMP 2 - step")
+
+
+# fit CMP model
+gm_res_cmp <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                    team1 = england_2011$home, team2=england_2011$visitor,
+                    fixed_params = gm_res$parameters,
+                    model='cmp')
+
+
+# Estiamte the dispersion with the upsilon.ml function.
+expg_default <- predict_expg(gm_res, team1 = england_2011$home, team2=england_2011$visitor)
+
+upsilon_est <- upsilon.ml(x = c(england_2011$hgoal, england_2011$vgoal),
+                          parameters=c(expg_default$expg1, expg_default$expg2),
+                          param_type = 'mu', method='fast')
+
+upsilon_diff <- abs(gm_res_cmp$parameters$dispersion - upsilon_est)
+
+
+test_that("Fitting CMP model", {
+  expect_equal(class(gm_res_cmp), 'goalmodel')
+  expect_true(is.null(gm_res_cmp$parameters$rho))
+  expect_true(is.null(gm_res_cmp$parameters$sigma))
+  expect_true(is.numeric(gm_res_cmp$parameters$dispersion))
+  expect_true(length(gm_res_cmp$parameters$dispersion) == 1)
+  expect_equal(any(is.na(gm_res_cmp$parameters$attack)), FALSE)
+  expect_equal(any(is.na(gm_res_cmp$parameters$defense)), FALSE)
+  expect_equal(names(gm_res_cmp$parameters$attack), names(gm_res_cmp$parameters$defense))
+  expect_equal(any(duplicated(names(gm_res_cmp$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_cmp$parameters$defense))), FALSE)
+  expect_true(gm_res_cmp$converged)
+  expect_true(upsilon_diff < 0.001)
+})
+
+context("Model fitting - Negbin model")
+
+# fit negative binomial model
+gm_res_nbin <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                    team1 = england_2011$home, team2=england_2011$visitor, model='negbin')
+
+
+test_that("Fitting Negative Binomial model", {
+  expect_equal(class(gm_res_nbin), 'goalmodel')
+  expect_true(is.null(gm_res_nbin$parameters$rho))
+  expect_true(is.null(gm_res_nbin$parameters$sigma))
+  expect_true(is.numeric(gm_res_nbin$parameters$dispersion))
+  expect_true(length(gm_res_nbin$parameters$dispersion) == 1)
+  expect_equal(any(is.na(gm_res_nbin$parameters$attack)), FALSE)
+  expect_equal(any(is.na(gm_res_nbin$parameters$defense)), FALSE)
+  expect_equal(names(gm_res_nbin$parameters$attack), names(gm_res_nbin$parameters$defense))
+  expect_equal(any(duplicated(names(gm_res_nbin$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_nbin$parameters$defense))), FALSE)
+  expect_true(gm_res_nbin$converged)
+})
+
+
 
 
 
