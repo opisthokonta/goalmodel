@@ -256,6 +256,11 @@ negloglik <- function(params, goals1, goals2, team1, team2,
 
 
 # Fit models using the built-in glm.fit() function.
+# This is an internal function that in some cases provides the final parameter
+# estimates. When model = 'negbin' or 'cmp', or when there are fixed
+# coefficients, this function provides only starting values for later
+# optimization. Therefore the output of this function (coefficeints, loglik)
+# does not neccecarily reflect the input.
 gm_fit_glm <- function(goals1, goals2, team1, team2,
                            all_teams, model, additional_covariates,
                            x1 = NULL, x2=NULL,
@@ -320,19 +325,22 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
   }
 
   if (model %in% c('poisson', 'negbin', 'cmp')){
-    glm_family <- stats::poisson()
+    # Note that a poisson model is fitted if model = 'negbin' or 'cmp'.
+    glm_family <- stats::poisson(link='log')
   } else if (model == 'gaussian'){
-    glm_family <- stats::gaussian()
+    glm_family <- stats::gaussian(link='log')
   }
 
   if (is.null(weights)){
     glm_res <- stats::glm.fit(x=xmat, y=yy,
+                       start=c(mean(log(yy+0.5)-0.2), rep(0, ncol(xmat)-1)),
                        family=glm_family,
                        control = list(maxit=100, epsilon = 1e-9),
                        intercept = FALSE)
   } else {
     glm_res <- stats::glm.fit(x=xmat, y=yy,
                               weights=rep(weights, 2),
+                              start=c(mean(log(yy+0.5)-0.2), rep(0, ncol(xmat)-1)),
                               family=glm_family,
                               control = list(maxit=100, epsilon = 1e-9),
                               intercept = FALSE)
@@ -372,8 +380,14 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
   stopifnot(check_plist(param_list))
 
   # Compute the log-likelihood.
-  loglik <- sum(stats::dpois(x = c(goals1, goals2),
-                lambda=glm_res$fitted.values, log=TRUE))
+  if (model %in% c('poisson', 'negbin', 'cmp')){
+    loglik <- sum(stats::dpois(x = c(goals1, goals2),
+                               lambda=glm_res$fitted.values, log=TRUE))
+  } else if (model == 'gaussian'){
+    loglik <- sum(stats::dnorm(x = c(goals1, goals2),
+                               mean=glm_res$fitted.values, log=TRUE))
+  }
+
 
   return(list(parameters = param_list, loglikelihood=loglik,
               npar_fixed = 0, npar_est = ncol(xmat), aic=glm_res$aic,
