@@ -9,10 +9,10 @@
 #' @export
 summary.goalmodel <- function(object, ...){
 
-  if (object$converged){
+  if (length(object$warnings) == 0){
     cat(sprintf('Model sucsessfully fitted in %.2f seconds\n\n', object$est_time))
   } else {
-    cat('Model failed to converge. Parameter estimates are unreliable.\n\n')
+    cat(sprintf('Model fitted with warnings (%d). Results may be unreliable.\n\n', length(object$warnings)))
   }
 
   # Data summary

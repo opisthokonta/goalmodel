@@ -11,7 +11,6 @@ engsoccerdata::england %>%
          home = as.character(home),
          visitor= as.character(visitor)) -> england_2011
 
-
 #########################################
 
 context("Model fitting - Default model")
@@ -19,7 +18,6 @@ context("Model fitting - Default model")
 # fit default model
 gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
                     team1 = england_2011$home, team2=england_2011$visitor)
-
 
 
 test_that("Fitting default model", {
@@ -312,5 +310,28 @@ test_that("The weighting function", {
 
 })
 
+context("Warnings")
+
+
+# Add a disconected fake data to test warning.
+england_2011_tmp <- bind_rows(england_2011,
+                              data.frame(home=c('ff', 'aaa'), visitor=c('aaa', 'zzz'),
+                                         hgoal=c(1,1), vgoal=c(1,1), stringsAsFactors = FALSE))
+
+
+
+test_that("Warning messages during model fitting", {
+  expect_warning(goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                           team1 = england_2011$home, team2=england_2011$visitor,
+                           fixed_params = list(dispersion=1)))
+
+  expect_warning(goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                           team1 = england_2011$home, team2=england_2011$visitor,
+                           fixed_params = list(dispersion=1), model='gaussian'))
+
+  expect_warning(goalmodel(goals1 = england_2011_tmp$hgoal, goals2 = england_2011_tmp$vgoal,
+                           team1 = england_2011_tmp$home, team2=england_2011_tmp$visitor))
+
+})
 
 

@@ -98,6 +98,51 @@ lambda_pred <- function(plist, team1, team2, x1, x2){
 
 }
 
+# Function to check that the network of all team that has played eachother
+# is fully connected.
+is_connected <- function(edgelist){
+
+  all_nodes <- sort(unique(c(edgelist[,1], edgelist[,2]))) # all nodes
+  n_nodes <- length(all_nodes) # number of nodes
+
+  start_node <- all_nodes[1]
+
+  # initiate the lgocial vector for nodes that has been reachef from the
+  # starting node.
+  reachable_from_start <- all_nodes == start_node
+
+  # logical of length n_nodes, indicating nodes that has been visited.
+  # These should not be added to queue, hence the name dequed.
+  dequed_nodes <- all_nodes == start_node
+
+  # logical of length n_teams, indicating queue.
+  node_queue <- all_nodes == start_node
+
+  while (sum(node_queue) != 0){
+
+    # First node in the queue.
+    cur_node <- all_nodes[node_queue][1]
+
+    reachable_from_current <- union(edgelist[edgelist[,1] == cur_node,2], edgelist[edgelist[,2] == cur_node,1])
+    reachable_from_current_idx <- all_nodes %in% reachable_from_current & (!dequed_nodes)
+    reachable_from_start[reachable_from_current_idx] <- reachable_from_start[reachable_from_current_idx] | TRUE
+
+    # list of nodes that has been visited, and had their neighbors visited.
+    dequed_nodes[all_nodes == cur_node] <- TRUE
+
+    # Update node queue
+    node_queue <- (node_queue | (all_nodes %in% reachable_from_current)) & (!dequed_nodes)
+
+    if (sum(reachable_from_start) == n_nodes){break}
+
+  }
+
+  sum(reachable_from_start) == n_nodes
+
+}
+
+
+
 
 # Check that a list of parameters has correct layout.
 # Returns TRUE if everything is OK.
@@ -469,6 +514,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
                       fixed_params = NULL, weights=NULL,
                       model = 'poisson', optim_method='BFGS'){
 
+  warning_messages <- c()
+
   stopifnot(length(goals1)==length(goals2),
             length(goals2) == length(team1),
             length(team1) == length(team2),
@@ -479,12 +526,18 @@ goalmodel <- function(goals1, goals2, team1, team2,
   if (dc){
     # Check if there is any data suitable for DC adjustment.
     if(!any(goals1 <= 1 & goals2 <= 1)){
-      stop('Dixon-Coles adjustment is not applicable when there are no instances both teams scoring 1 goal or less. ')
+      stop('Dixon-Coles adjustment is not applicable when there are no instances both teams scoring 1 goal or less.')
     }
 
     if (model %in% c('gaussian')){
       stop('Dixon-Coles adjustment does not work with a Gaussian model.')
     }
+  }
+
+  if (!is_connected(cbind(team1, team2))){
+    wm_tmp <- 'The data contains two or more separate clusters of teams that are not comparable. The results may be unreliable.'
+    warning_messages <- append(warning_messages, wm_tmp)
+    warning(wm_tmp)
   }
 
 
@@ -557,11 +610,15 @@ goalmodel <- function(goals1, goals2, team1, team2,
   if (mdefault){
 
     if (!gm_fit_glm_res$converged){
-      warning('Did not converge (glm.fit). Parameter estimates are unreliable.')
+      wm_tmp <- 'Did not converge (glm.fit). Parameter estimates are unreliable.'
+      warning_messages <- append(warning_messages, wm_tmp)
+      warning(wm_tmp)
     }
 
     if (gm_fit_glm_res$boundary){
-      warning('glm.fit(): Fitted values on the boundary of the attainable values. Parameter estimates are unreliable.')
+      wm_tmp <- 'glm.fit(): Fitted values on the boundary of the attainable values. Parameter estimates are unreliable.'
+      warning_messages <- append(warning_messages, wm_tmp)
+      warning(wm_tmp)
     }
 
     parameter_list <- gm_fit_glm_res$parameters
@@ -637,9 +694,13 @@ goalmodel <- function(goals1, goals2, team1, team2,
           fixed_params$dispersion <- log(fixed_params$dispersion)
 
           if (model == 'poisson'){
-            warning('Dispersion parameter is fixed, but model is Poisson. The dispersion parameter will not have an effect.')
+            wm_tmp <- 'Dispersion parameter is fixed, but model is Poisson. The dispersion parameter will not have an effect.'
+            warning_messages <- append(warning_messages, wm_tmp)
+            warning(wm_tmp)
           } else if (model == 'gaussian'){
-            warning('Dispersion parameter is fixed, but model is Gaussian The dispersion parameter will not have an effect. The related parameter for the Gaussian model is sigma.')
+            wm_tmp <- 'Dispersion parameter is fixed, but model is Gaussian The dispersion parameter will not have an effect. The related parameter for the Gaussian model is sigma.'
+            warning_messages <- append(warning_messages, wm_tmp)
+            warning(wm_tmp)
           }
         }
       }
@@ -664,7 +725,9 @@ goalmodel <- function(goals1, goals2, team1, team2,
     converged <- optim_res$convergence == 0
 
     if (!converged){
-      warning('Did not converge (optim). Parameter estimates are unreliable.')
+      wm_tmp <- 'Did not converge (optim). Parameter estimates are unreliable.'
+      warning_messages <- append(warning_messages, wm_tmp)
+      warning(wm_tmp)
     }
 
     # relist the parameter vector, calculate the missing attack and defense parameter.
@@ -767,6 +830,12 @@ goalmodel <- function(goals1, goals2, team1, team2,
   parameter_list$defense <- parameter_list$defense[order(names(parameter_list$defense))]
   parameter_list$attack <- parameter_list$attack[order(names(parameter_list$attack))]
 
+  if (any(is.na(unlist(parameter_list)))){
+    wm_tmp <- 'Some parameters are NA.'
+    warning_messages <- append(warning_messages, wm_tmp)
+    warning(wm_tmp)
+  }
+
   # maxgoal. Useful for later predictions.
   maxgoal <- max(all_goals)
 
@@ -778,7 +847,8 @@ goalmodel <- function(goals1, goals2, team1, team2,
               fixed_params = fixed_params,
               converged = converged,
               maxgoal = maxgoal,
-              fitter = fitter)
+              fitter = fitter,
+              warnings = warning_messages)
 
   class(out) <- 'goalmodel'
 
