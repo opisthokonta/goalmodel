@@ -113,3 +113,62 @@ weights_dc <- function(dates, xi=0, currentDate=NULL){
   return(w)
 }
 
+
+
+# Internal function for computnig the squared error for estimating
+# the expected goals from outcome probabilities.
+lambda_sq_error <- function(lambda_pars, trgt_probs, uprx){
+
+  lambda_pars <- exp(lambda_pars) # trick to avoid negaive lambda parameters.
+  hda_probs <- numeric(3)
+  probmat <- dpois(0:uprx, lambda=lambda_pars[1]) %o% dpois(0:uprx, lambda=lambda_pars[2])
+
+  hda_probs[2] <- sum(diag(probmat))
+  hda_probs[1] <- sum(probmat[lower.tri(probmat)])
+  hda_probs[3] <- 1 - sum(hda_probs[1:2])
+
+  sum((hda_probs - trgt_probs)^2)
+
+}
+
+#' Estimate the expected goals from win-draw-lose probabilities.
+#'
+#' This function converts outcome probabilities into expected goals,
+#' assuming an underlying Poisson distribution.
+#'
+#' @param probabilities A 3-column matrix of win-draw-lose probabilities.
+#' @param uprx numeric. The upper limit for evaluating the poisson distribution.
+#'
+#' @return A list with two elements. The first, expg, is a two-column matrix of
+#' expected goals. The second, sq_error, is a numeric vector indicating the how well
+#' the expected goals matches the probabilities using the poisson distribution.
+#'
+#' @export
+expg_from_probabilities <- function(probabilities, uprx=100){
+
+  if (!is.matrix(probabilities)){
+    probabilities <- matrix(probabilities, nrow=1,
+                            dimnames = list(NULL, names(probabilities)))
+  }
+
+  stopifnot(ncol(probabilities) == 3,
+            all(abs(rowSums(probabilities) - 1) < 0.0001),
+            uprx >= 1,
+            length(uprx) == 1)
+
+  expg <- matrix(ncol=2, nrow=nrow(probabilities))
+  sq_errors <- numeric(nrow(probabilities))
+  for (ii in 1:nrow(probabilities)){
+
+    optim_res <- optim(c(0, 0), fn=lambda_sq_error, trgt_prob=probabilities[ii,],
+                       uprx = uprx)
+    expg[ii,] <- exp(optim_res$par)
+    sq_errors[ii] <- optim_res$value
+  }
+
+  colnames(expg) <- colnames(probabilities)
+
+  out <- list(expg = expg, sq_errors=sq_errors)
+  return(out)
+}
+

@@ -146,6 +146,7 @@ context("Model fitting - Gaussian")
 gm_res_gaussian <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
                           team1 = england_2011$home, team2=england_2011$visitor, model='gaussian')
 
+
 test_that("Fitting Gaussian model", {
   expect_equal(class(gm_res_gaussian), 'goalmodel')
   expect_equal(gm_res_gaussian$parameters$dispersion, NULL)
@@ -310,6 +311,34 @@ test_that("The weighting function", {
 
 })
 
+context("expg_from_probabilities")
+
+
+# Compute probabilities from the default model.
+pred_result_default_all <- predict_result(gm_res, team1 = england_2011$home,
+                                          team2=england_2011$visitor, return_df = FALSE)
+
+# Also compute expected goals, as a comparison.
+pred_result_expg_all <- predict_expg(gm_res, team1 = england_2011$home,
+                                     team2=england_2011$visitor, return_df = FALSE)
+
+# Reverse-engineer the expg from the probabilities.
+expgfp <- expg_from_probabilities(pred_result_default_all, uprx = 30)
+
+test_that("expg_from_probabilities", {
+
+  expect_true(length(expgfp) == 2)
+  expect_true(ncol(expgfp$expg) == 2)
+  expect_false(any(is.na(expgfp$expg)))
+  expect_false(any(is.na(expgfp$sq_errors)))
+
+  expect_true(all(abs(pred_result_expg_all$expg1 - expgfp$expg[,1]) < 0.01))
+  expect_true(all(abs(pred_result_expg_all$expg2 - expgfp$expg[,2]) < 0.01))
+
+})
+
+
+
 context("Warnings")
 
 
@@ -317,7 +346,6 @@ context("Warnings")
 england_2011_tmp <- bind_rows(england_2011,
                               data.frame(home=c('ff', 'aaa'), visitor=c('aaa', 'zzz'),
                                          hgoal=c(1,1), vgoal=c(1,1), stringsAsFactors = FALSE))
-
 
 
 test_that("Warning messages during model fitting", {

@@ -3,6 +3,7 @@
 S3method(summary,goalmodel)
 export(dCMP)
 export(eCMP)
+export(expg_from_probabilities)
 export(goalmodel)
 export(lambdaCMP)
 export(pCMP)
