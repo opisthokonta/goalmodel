@@ -7,7 +7,7 @@ output:
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 
-The goalmodel package let you model the number of goals scored in sport games. The models are primarily aimed at modelling and predicting football (soccer) scores, but could also be applicable for similar sports, such as hockey and handball. 
+The goalmodel package let you build prediction models for the number of goals scored in sport games. The models are primarily aimed at modelling and predicting football (soccer) scores, but could also be applicable for similar sports, such as hockey and handball. 
 
 # Installation
 
@@ -21,11 +21,11 @@ devtools::install_github("opisthokonta/goalmodel")
 ### Version 0.2
 * New faster model fitting. Some models use the built-in glm.fit function to estimate the attack and defence parameters. If the model can not be estimated with the glm.fit function, the results from glm.fit is used as starting values for subsequent fitting. All this should give faster estimation.
 
-* Can now fit Conway-Maxwell-Poisson (CMP) models. This is still a bit slow and unstable, so two-step estimation is recomended. See the section on the CMP below for more info. Several new functions relted to the CMP model is also available if you want to use them for additional modelling. 
+* Can now fit Conway-Maxwell-Poisson (CMP) models. This is still a bit slow and unstable, so two-step estimation is recomended. See the section on the CMP below for more info. Several new functions related to the CMP model is also available if you want to use them for additional modelling. 
 
-* The model = 'ls' option is removed. The results from this should be the same as model = 'gaussian', which is still available. 
+* The model = 'ls' option is removed. The option to use model = 'gaussian', is still available and should be equivalent to the old 'ls' option.
 
-* Some changes to what is returned by the goalmodel function, but this should not cause much problems since it is only related to some of the more technical parts of the output. 
+* Some changes to what is returned by the goalmodel function, but this should not cause much problems to your existing code since it is only related to some of the more technical parts of the output. 
  
 ### Version 0.1
 * Initial release
@@ -49,7 +49,7 @@ The default model can be modified in numerous ways as detailed in this vignette.
 
 ## Fitting the default model
 
-Models are fitted with the goalmodel function. The minimum required input is vectors containing the number of goals scored and the names of the teams. Here I use data from the excellent [engsoccerdata](https://cran.r-project.org/web/packages/engsoccerdata/) package.
+Models are fitted with the goalmodel function. The minimum required input are vectors containing the number of goals scored and the names of the teams. Here I use data from the excellent [engsoccerdata](https://cran.r-project.org/web/packages/engsoccerdata/) package.
 
 ```{r, message=FALSE}
 library(goalmodel)
@@ -75,7 +75,7 @@ summary(gm_res)
 
 # The Dixon-Coles model
 
-The model in the paper by Dixon and Coles (1997) they introduce a model modifies the probabilities for low scores, where each team scores at most 1 goal each. The amount of adjustment is determined by the parameter ρ (rho), which can be estimated from the data. The Dixon-Coles model can be fitted by setting the dc argument to TRUE.
+In a paper by Dixon and Coles (1997) they introduce a model that extend the defaul model that modifies the probabilities for low scores, where each team scores at most 1 goal each. The amount of adjustment is determined by the parameter ρ (rho), which can be estimated from the data. The Dixon-Coles model can be fitted by setting the dc argument to TRUE.
 
 ```{r}
 # Fit the Dixon-Coles model.
@@ -160,7 +160,7 @@ gm_res_w <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 
 It is possible to use additional variables to predict the outcome. One particular useful thing this can be used for is to have greater control of the home field advantage. For example if you use data from several leagues you might want to have a separate home field advantage for each league, or be able to turn of the advantage for games played on neutral ground. 
 
-Here is how to specify the default model with the home field advantage specified as additional covariates. Notice how the hfa argument is set to FALSE, so that the default home field advantage factor is droped. Also notice that only covariates for the first team is given, implicitly setting all values of this covariate to 0 for team2. 
+Here is how to specify the default model with the home field advantage specified as an additional covariate. Notice how the hfa argument is set to FALSE, so that the default home field advantage factor is droped. Also notice that only covariates for the first team is given, implicitly setting all values of this covariate to 0 for team2. 
 
 
 ```{r}
@@ -188,7 +188,7 @@ By the default the Poisson distribution is used to model the goals. The Poisson 
 
 ## The Negative Binomial model
 
-The Negative Binomial (NB) model is a more flexible model that allows higher variance than the Poisson model. The NB model introduces another parameter called the "dispersion" parameter. This parameter has to be positive, and the greater the value of this parameter, the more variance there is relative to the Poisson model with the same $\lambda$ (called overdispersion). When the parameter is close to zero, it the result is approximately the Poisson. The NB model can be fitted by setting the "model" argument to 'negbin'. In this example the dispersion parameter is close to zero.
+The Negative Binomial (NB) model is a more flexible model that allows higher variance than the Poisson model. The NB model introduces another parameter called the "dispersion" parameter. This parameter has to be positive, and the greater the value of this parameter, the more variance there is relative to the Poisson model with the same $\lambda$. When the variance is greater than the expectation, it is referred to as overdispersion. When the parameter is close to zero, it the result is approximately the Poisson. The NB model can be fitted by setting the "model" argument to 'negbin'. In this example the dispersion parameter is close to zero.
 
 ```{r}
 # Fit the model with overdispersion.
@@ -203,13 +203,13 @@ gm_res_nb$parameters$dispersion
 
 ## The Conway-Maxwell-Poisson model
 
-While the Negative Binomial model is more flexible than the Poisson model in that it can model excess variance, the Conway-Maxwell-Poisson (CMP) model is even more flexible. The CMP can be both over-dispersed and under-dispersed. The dispersion parameter controlling the amount of dispersion is called $\upsilon$ (upsilon), and behaves a bit different than the dispersion parameter in the Negative Binomial. When $\upsilon$ = 1 the model becomes the Poisson model. If $\upsilon$ is greater than 1 the variances is less than the expectation, and we have under-dispersion. If $\upsilon$ is between 0 and 1, there is over-dipsersion. 
+While the Negative Binomial model is more flexible than the Poisson model in that it can model excess variance, the Conway-Maxwell-Poisson (CMP) model is even more flexible. The CMP can be both over-dispersed and under-dispersed. The dispersion parameter controlling the amount of dispersion is called $\upsilon$ (upsilon), and behaves a bit different than the dispersion parameter in the Negative Binomial. When $\upsilon$ = 1 the model becomes the Poisson model. If $\upsilon$ is greater than 1 the variance is less than the expectation, and we have under-dispersion. If $\upsilon$ is between 0 and 1, there is over-dipsersion. 
 
-Unfortunately, the CMP distribution is a bit difficult to work with for several reasons. It is not built-in in R, so I have implemented some of the relevant distribution functions (called dCMP and pCMP). It also has a normalizing constant that is a bit difficult to compute, and must be approximated. The distribution functions have an argument called 'error' that determines the amount of approximation, and has a default that is precise enough for our needs. 
+Unfortunately, the CMP distribution is a bit difficult to work with for several reasons. It is not built-in in R, so I have implemented some of the relevant distribution functions (called dCMP and pCMP). It also has a normalizing constant that is a bit difficult to compute, and must be approximated. The distribution functions have an argument called 'error' that determines the amount of approximation, and has a default that is precise enough for our needs.
 
-The perhaps most confusing thing with the CMP model is that it has a parameter called $\lambda$, and this parameter does NOT behave like the $\lambda$ in the Poisson or NB models. In those models the lambda is the same as the expectation, but this is not the case for the CMP. To make matters worse, there is no simple forumla for finding the expectation for a given set of values of $\lambda$ and $\upsilon$, although an approximate formula exists. Therefore I have included two functions to compute the expectation (eCMP) and another to find the $\lambda$ for a given set of expectation and dipsersion (lambdaCMP). 
+The perhaps most confusing thing with the CMP model is that it has a parameter called $\lambda$, and this parameter does NOT behave like the $\lambda$ in the Poisson or NB models. In those models the lambda is the same as the expectation, but this is not the case for the CMP. To make matters worse, there is no simple forumla for finding the expectation for a given set of values of $\lambda$ and $\upsilon$, although an approximate formula exists. Therefore I have included two functions to compute the expectation (eCMP) and another to find the $\lambda$ for a given set of values for the expectation and dispersion (lambdaCMP). 
 
-To fit and use a model with the CMP distribution is easy. As in the NB and gaussian models, you can just set model == 'cmp' in the goalmodel function. However, because of all the complications with this model, it is really slow to estimate the parameters. Under the hood, I have tried to speed things up by using approximations where I could, but it is still slow. I therefore recomend using two-step estimation to fit this model. If you fit this model, and see that there is overdispersion (dispersion < 1), I recomend you use the NB model instead. 
+To fit and use a model with the CMP distribution is easy, you can just set model == 'cmp' in the goalmodel function. However, because of all the complications with this model, estimating the parameters can be really slow. Under the hood, I have tried to speed things up by using approximations where I could, but it is still slow. I therefore recomend using two-step estimation to fit this model. If you fit this model, and see that there is overdispersion (dispersion < 1), it can be a good idea to use the NB model instead. 
 
 ```{r}
 
@@ -309,9 +309,9 @@ summary(gm_res_offset)
 
 # Modifying parameters
 
-In addition to fixing parameters before the model is fit, you can also manually set the parameters after the model is fitted. This can be useful if you believe the attack or defence paramters given by the model is inacurate because you have some additional information that is not captured in the data. 
+In addition to fixing parameters before the model is fit, you can also manually set the parameters after the model is fitted. This can be useful if you believe the attack or defence parameters given by the model is inacurate because you have some additional information that is not captured in the data. 
 
-Modifying the paramters can also be useful due to the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting γ to 0.1 is a good choice. Here is how this can be done:
+Modifying the parameters can also be useful for the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting γ to 0.1 is a good choice. Here is how this can be done:
 
 ```{r}
 
@@ -329,7 +329,7 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
 
 
 # Other packages
-There are some other packages out there that has similar functionality as this package. The [regista](https://github.com/Torvaney/regista) package implements a more general interface to fit the Dixon-Coles model. The [fbRanks](https://cran.r-project.org/web/packages/fbRanks/index.html) package implements only the Dixon-Coles time weighting functionality, but has a lot of other features. 
+There are some other packages out there that have similar functionality as this package. The [regista](https://github.com/Torvaney/regista) package implements a more general interface to fit the Dixon-Coles model. The [fbRanks](https://cran.r-project.org/web/packages/fbRanks/index.html) package implements only the Dixon-Coles time weighting functionality, but has a lot of other features. 
 
 
 # References
