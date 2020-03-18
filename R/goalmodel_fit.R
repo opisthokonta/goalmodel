@@ -800,14 +800,13 @@ goalmodel <- function(goals1, goals2, team1, team2,
       loglikelihood_null <- sum(stats::dnbinom(all_goals, mu = mean_goals, size=dispersion0_tmp, log=TRUE)*rep(weights,2))
     }
   } else if (model == 'gaussian'){
-    ## TODO
     if (is.null(weights)){
       sigma0_tmp <- stats::sd(all_goals)
-      loglikelihood_saturated <- NA
+      loglikelihood_saturated <- sum(stats::dnorm(all_goals, mean = all_goals, sd=sigma0_tmp, log=TRUE))
       loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE))
     } else {
       sigma0_tmp <- sqrt(sum(rep(weights, 2) * (all_goals - mean_goals)^2))
-      loglikelihood_saturated <- NA
+      loglikelihood_saturated <- sum(stats::dnorm(all_goals, mean = all_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
       loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
     }
   } else if (model == 'cmp'){
