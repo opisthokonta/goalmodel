@@ -20,5 +20,6 @@ the expected goals matches the probabilities using the poisson distribution.
 }
 \description{
 This function converts outcome probabilities into expected goals,
-assuming an underlying Poisson distribution.
+assuming an underlying Poisson distribution, or a Dixon-Coles-Poisson
+distribution with known dependence paramater rho.
 }

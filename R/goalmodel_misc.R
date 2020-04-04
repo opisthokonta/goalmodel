@@ -121,7 +121,7 @@ expg_prob_sq_error <- function(pars, trgt_probs, rho, uprx){
 
   pars <- exp(pars) # trick to avoid negaive lambda parameters.
   hda_probs <- numeric(3)
-  probmat <- dpois(0:uprx, lambda=pars[1]) %o% dpois(0:uprx, lambda=pars[2])
+  probmat <- stats::dpois(0:uprx, lambda=pars[1]) %o% stats::dpois(0:uprx, lambda=pars[2])
 
   ## DC adjustment
   if (rho != 0){
@@ -142,7 +142,8 @@ expg_prob_sq_error <- function(pars, trgt_probs, rho, uprx){
 #' Estimate the expected goals from win-draw-lose probabilities.
 #'
 #' This function converts outcome probabilities into expected goals,
-#' assuming an underlying Poisson distribution.
+#' assuming an underlying Poisson distribution, or a Dixon-Coles-Poisson
+#' distribution with known dependence paramater rho.
 #'
 #' @param probabilities A 3-column matrix of win-draw-lose probabilities.
 #' @param rho numeric. Value for the Dixon-Coles adjustment parameter. Default is 0, which is the same as no adjustment.
@@ -172,7 +173,7 @@ expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 
   for (ii in 1:nrow(probabilities)){
 
-    optim_res <- optim(c(0,0), fn=expg_prob_sq_error,
+    optim_res <- stats::optim(c(0,0), fn=expg_prob_sq_error,
                        trgt_prob=probabilities[ii,],
                        rho = rho, uprx = uprx)
 
