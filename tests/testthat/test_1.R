@@ -318,15 +318,32 @@ context("expg_from_probabilities")
 pred_result_default_all <- predict_result(gm_res, team1 = england_2011$home,
                                           team2=england_2011$visitor, return_df = FALSE)
 
+
+pred_result_dc_all <- predict_result(gm_res_dc, team1 = england_2011$home,
+                                      team2=england_2011$visitor, return_df = FALSE)
+
 # Also compute expected goals, as a comparison.
 pred_result_expg_all <- predict_expg(gm_res, team1 = england_2011$home,
+                                     team2=england_2011$visitor, return_df = FALSE)
+
+# Also compute expected goals, as a comparison.
+pred_result_expg_dc_all <- predict_expg(gm_res_dc, team1 = england_2011$home,
                                      team2=england_2011$visitor, return_df = FALSE)
 
 # Reverse-engineer the expg from the probabilities.
 expgfp <- expg_from_probabilities(pred_result_default_all, uprx = 30)
 
+expgfpdc <- expg_from_probabilities(pred_result_dc_all,
+                                    rho=gm_res_dc$parameters$rho, uprx = 30)
+
+# hist(pred_result_expg_all$expg1 - expgfp$expg[,1])
+#
+# hist(pred_result_expg_dc_all$expg1 - expgfpdc$expg[,1])
+# hist(pred_result_expg_dc_all$expg2 - expgfpdc$expg[,2])
+
 test_that("expg_from_probabilities", {
 
+  # Default
   expect_true(length(expgfp) == 2)
   expect_true(ncol(expgfp$expg) == 2)
   expect_false(any(is.na(expgfp$expg)))
@@ -335,6 +352,14 @@ test_that("expg_from_probabilities", {
   expect_true(all(abs(pred_result_expg_all$expg1 - expgfp$expg[,1]) < 0.01))
   expect_true(all(abs(pred_result_expg_all$expg2 - expgfp$expg[,2]) < 0.01))
 
+  # DC
+  expect_true(length(expgfpdc) == 2)
+  expect_true(ncol(expgfpdc$expg) == 2)
+  expect_false(any(is.na(expgfpdc$expg)))
+  expect_false(any(is.na(expgfpdc$sq_errors)))
+
+   expect_true(all(abs(pred_result_expg_dc_all$expg1 - expgfpdc$expg[,1]) < 0.01))
+   expect_true(all(abs(pred_result_expg_dc_all$expg2 - expgfpdc$expg[,2]) < 0.01))
 })
 
 

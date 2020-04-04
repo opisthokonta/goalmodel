@@ -4,10 +4,12 @@
 \alias{expg_from_probabilities}
 \title{Estimate the expected goals from win-draw-lose probabilities.}
 \usage{
-expg_from_probabilities(probabilities, uprx = 100)
+expg_from_probabilities(probabilities, rho = 0, uprx = 75)
 }
 \arguments{
 \item{probabilities}{A 3-column matrix of win-draw-lose probabilities.}
+
+\item{rho}{numeric. Value for the Dixon-Coles adjustment parameter. Default is 0, which is the same as no adjustment.}
 
 \item{uprx}{numeric. The upper limit for evaluating the poisson distribution.}
 }

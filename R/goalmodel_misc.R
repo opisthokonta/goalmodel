@@ -117,11 +117,19 @@ weights_dc <- function(dates, xi=0, currentDate=NULL){
 
 # Internal function for computnig the squared error for estimating
 # the expected goals from outcome probabilities.
-lambda_sq_error <- function(lambda_pars, trgt_probs, uprx){
+expg_prob_sq_error <- function(pars, trgt_probs, rho, uprx){
 
-  lambda_pars <- exp(lambda_pars) # trick to avoid negaive lambda parameters.
+  pars <- exp(pars) # trick to avoid negaive lambda parameters.
   hda_probs <- numeric(3)
-  probmat <- dpois(0:uprx, lambda=lambda_pars[1]) %o% dpois(0:uprx, lambda=lambda_pars[2])
+  probmat <- dpois(0:uprx, lambda=pars[1]) %o% dpois(0:uprx, lambda=pars[2])
+
+  ## DC adjustment
+  if (rho != 0){
+    correctionmat <- matrix(tau(c(0,1,0,1), c(0,0,1,1),
+                                rep(pars[1], 4),
+                                rep(pars[2], 4), rho), nrow=2)
+    probmat[1:2, 1:2] <- probmat[1:2, 1:2] * correctionmat
+  }
 
   hda_probs[2] <- sum(diag(probmat))
   hda_probs[1] <- sum(probmat[lower.tri(probmat)])
@@ -137,14 +145,16 @@ lambda_sq_error <- function(lambda_pars, trgt_probs, uprx){
 #' assuming an underlying Poisson distribution.
 #'
 #' @param probabilities A 3-column matrix of win-draw-lose probabilities.
+#' @param rho numeric. Value for the Dixon-Coles adjustment parameter. Default is 0, which is the same as no adjustment.
 #' @param uprx numeric. The upper limit for evaluating the poisson distribution.
 #'
 #' @return A list with two elements. The first, expg, is a two-column matrix of
 #' expected goals. The second, sq_error, is a numeric vector indicating the how well
 #' the expected goals matches the probabilities using the poisson distribution.
 #'
+#'
 #' @export
-expg_from_probabilities <- function(probabilities, uprx=100){
+expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 
   if (!is.matrix(probabilities)){
     probabilities <- matrix(probabilities, nrow=1,
@@ -154,21 +164,25 @@ expg_from_probabilities <- function(probabilities, uprx=100){
   stopifnot(ncol(probabilities) == 3,
             all(abs(rowSums(probabilities) - 1) < 0.0001),
             uprx >= 1,
-            length(uprx) == 1)
+            length(uprx) == 1,
+            length(rho) == 1)
 
   expg <- matrix(ncol=2, nrow=nrow(probabilities))
   sq_errors <- numeric(nrow(probabilities))
+
   for (ii in 1:nrow(probabilities)){
 
-    optim_res <- optim(c(0, 0), fn=lambda_sq_error, trgt_prob=probabilities[ii,],
-                       uprx = uprx)
+    optim_res <- optim(c(0,0), fn=expg_prob_sq_error,
+                       trgt_prob=probabilities[ii,],
+                       rho = rho, uprx = uprx)
+
     expg[ii,] <- exp(optim_res$par)
     sq_errors[ii] <- optim_res$value
+
   }
 
-  colnames(expg) <- colnames(probabilities)
-
   out <- list(expg = expg, sq_errors=sq_errors)
+
   return(out)
 }
 
