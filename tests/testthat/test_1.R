@@ -387,4 +387,30 @@ test_that("Warning messages during model fitting", {
 
 })
 
+context("Match schedule functions")
+
+
+dslm <- days_since_last_match(england_2011$home, england_2011$visitor, england_2011$Date)
+
+test_that("days_since_last_match", {
+
+  expect_true(ncol(dslm) == 2)
+  expect_true(nrow(dslm) == nrow(england_2011))
+  expect_true(sum(is.na(dslm)) == length(gm_res$all_teams))
+
+})
+
+mlxd <- matches_last_xdays(england_2011$home, england_2011$visitor, england_2011$Date)
+
+test_that("matches_last_xdays", {
+
+  expect_true(ncol(mlxd) == 2)
+  expect_true(nrow(mlxd) == nrow(england_2011))
+  expect_true(sum(is.na(mlxd)) == length(gm_res$all_teams))
+
+})
+
+
+
+
 

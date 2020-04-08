@@ -2,10 +2,12 @@
 
 S3method(summary,goalmodel)
 export(dCMP)
+export(days_since_last_match)
 export(eCMP)
 export(expg_from_probabilities)
 export(goalmodel)
 export(lambdaCMP)
+export(matches_last_xdays)
 export(pCMP)
 export(predict_expg)
 export(predict_goals)

@@ -7,7 +7,7 @@
 weights_dc(dates, xi = 0, currentDate = NULL)
 }
 \arguments{
-\item{dates}{a vector of dates (a type Date).}
+\item{dates}{a vector of dates (of type Date).}
 
 \item{xi}{A numeric with the time dumping factor. Ususally a value buetween 0.001 and 0.003.}
 

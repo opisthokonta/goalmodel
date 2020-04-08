@@ -90,7 +90,7 @@ summary.goalmodel <- function(object, ...){
 
 #' Compute Dixon-Coles weights
 #'
-#' @param dates a vector of dates (a type Date).
+#' @param dates a vector of dates (of type Date).
 #' @param xi A numeric with the time dumping factor. Ususally a value buetween 0.001 and 0.003.
 #' @param currentDate The date which to count backwards from. Default to the latest date in dates.
 #'
@@ -187,3 +187,123 @@ expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
   return(out)
 }
 
+
+
+#' Time since last match
+#'
+#' This function calculates the number of days since the two teams
+#' played their respective previous matches.
+#'
+#' @param team1 Vector of team names.
+#' @param team2 Vector of team names.
+#' @param dates a vector of dates (of type Date).
+#' @param first_val the value used for a team's first match in the data, when there
+#' are no preceding matches. Default is NA.
+#'
+#' @return A two-column matrix with the number of days since last time
+#' each team played.
+#'
+#' @seealso \code{\link{matches_last_xdays}}
+#'
+#' @export
+days_since_last_match <- function(team1, team2, dates, first_val = NA){
+
+  stopifnot(length(team1) == length(team2),
+            length(team2) == length(dates),
+            length(team1) >= 1,
+            length(first_val) == 1)
+
+  dates <- as.Date(dates)
+  ngames <- length(team1)
+  all_teams <- sort(unique(c(unique(team1), unique(team2))), decreasing = FALSE)
+
+  res <- matrix(NA, ncol=2, nrow=ngames)
+
+  for (ii in 1:length(all_teams)){
+
+    team_idx1 <- team1 == all_teams[ii]
+    team_idx2 <- team2 == all_teams[ii]
+
+    tidx <- as.numeric(team_idx1)
+    tidx[team_idx2] <- 2
+
+    team_idx <- which(team_idx1 | team_idx2)
+
+    tdates <- dates[team_idx]
+
+    for (tt in 1:length(tdates)){
+      if (tdates[tt] == min(tdates)){
+        tmp_val <- first_val
+      } else {
+        tmp_val <- tdates[tt] - max(tdates[tdates < tdates[tt]])
+      }
+
+      res[team_idx[tt], tidx[team_idx[tt]]] <- tmp_val
+
+    }
+  }
+
+  return(res)
+
+}
+
+
+
+#' Number of matches played in the preceding period
+#'
+#' This function calculates the number of matches the two teams
+#' have played the last x days.
+#'
+#' @param team1 Vector of team names.
+#' @param team2 Vector of team names.
+#' @param dates a vector of dates (of type Date).
+#' @param days_since The number of days back in time to count matches.
+#' @param first_val the value used for a team's first match in the data, when there
+#' are no preceding matches. Default is NA.
+#'
+#' @return A two-column matrix with the number of matches played in the preceding
+#' period of time, as given by the days_since argument.
+#'
+#' @seealso \code{\link{days_since_last_match}}
+#'
+#' @export
+matches_last_xdays <- function(team1, team2, dates, days_since=30, first_val = NA){
+
+  stopifnot(length(team1) == length(team2),
+            length(team2) == length(dates),
+            length(team1) >= 1,
+            length(days_since) == 1,
+            is.numeric(days_since))
+
+  dates <- as.Date(dates)
+  ngames <- length(team1)
+  all_teams <- sort(unique(c(unique(team1), unique(team2))), decreasing = FALSE)
+
+  res <- matrix(NA, ncol=2, nrow=ngames)
+
+  for (ii in 1:length(all_teams)){
+
+    team_idx1 <- team1 == all_teams[ii]
+    team_idx2 <- team2 == all_teams[ii]
+
+    tidx <- as.numeric(team_idx1)
+    tidx[team_idx2] <- 2
+
+    team_idx <- which(team_idx1 | team_idx2)
+
+    tdates <- dates[team_idx]
+
+    for (tt in 1:length(tdates)){
+      if(tdates[tt] == min(tdates)){
+        res[team_idx[tt], tidx[team_idx[tt]]] <- first_val
+      } else {
+        tmp_val <- pmax((tdates[tt] - tdates),0)
+        res[team_idx[tt], tidx[team_idx[tt]]] <- sum(tmp_val <= days_since & tmp_val > 0)
+      }
+
+    }
+  }
+
+  return(res)
+
+}
