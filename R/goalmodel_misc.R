@@ -157,9 +157,16 @@ expg_prob_sq_error <- function(pars, trgt_probs, rho, uprx){
 #' @export
 expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 
+  # Convert to matrix
   if (!is.matrix(probabilities)){
-    probabilities <- matrix(probabilities, nrow=1,
-                            dimnames = list(NULL, names(probabilities)))
+    if (is.numeric(probabilities)){
+      probabilities <- matrix(probabilities, nrow=1,
+                                 dimnames = list(NULL, names(probabilities)))
+    } else {
+      probabilities <- as.matrix(probabilities)
+    }
+
+
   }
 
   stopifnot(ncol(probabilities) == 3,
