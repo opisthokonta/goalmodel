@@ -18,6 +18,13 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.3
+* New function expg_from_probabilities(). This converts win-draw-lose probabilities to expected goals. 
+
+* Two new functions matches_last_xdays() and days_since_last_match(). These are useful if you want to include information about the effect of having a busy schedule into your model.
+
+* Some additional checks have been added make sure that the network of all team that has played each other is fully connected.
+
 ### Version 0.2
 * New faster model fitting. Some models use the built-in glm.fit function to estimate the attack and defence parameters. If the model can not be estimated with the glm.fit function, the results from glm.fit is used as starting values for subsequent fitting. All this should give faster estimation.
 
@@ -325,6 +332,56 @@ gm_res_rs2$parameters$gamma <- 0.1
 predict_result(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
+
+# Miscalaneous
+
+## Reverse enigeering expected goals
+
+The function predict_result that's demonstrated above uses the underlying statistical model and the expected goals from fitted goalmodel to compute the probabilities for win-draw-lose. The function expg_from_probabilities can be used to reverse this procedure, going from probabilities to the underlying expected goals. 
+
+This can be used to reverse-engineer predictions from other models or even bookmaker odds. The expected goals extracted from this method can for example be used as input to the goalmodel to get attack and defense ratings, and to make new predictions. 
+
+Here is some code demonstrating that it can recover the expected goals which are made from a fitted goalmodel with the Poisson distribution.
+
+```{r}
+
+# Win-Draw-Lose probabilities.
+wdl_probs <- predict_result(gm_res, team1=to_predict1, team2=to_predict2, 
+                            return_df = TRUE)
+
+wdl_probs
+
+expg_reveng <- expg_from_probabilities(wdl_probs[,c('p1', 'pd', 'p2')])
+
+expg_reveng$expg
+
+# Compare with expected goals predictions from above.
+predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+
+```
+
+You can also specify the Dixon-Coles parameter ρ (rho).  Unfortunately it is not possible to extract both the two expected goals and rho, since there will typically be a large number of combinations of the three parameters that yield the same probabilities. With rho given as a constant it is however possible to extract the expected goals. Here is how you can recover the expg from the DC model fitted above, using rho = -0.13. 
+
+```{r}
+
+# Win-Draw-Lose probabilities from DC model
+wdl_probs_dc <- predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, 
+                            return_df = TRUE)
+
+wdl_probs_dc
+
+# Use the rho argument to specify rho.
+expg_reveng_dc <- expg_from_probabilities(wdl_probs_dc[,c('p1', 'pd', 'p2')],
+                                      rho = -0.13)
+
+expg_reveng_dc$expg
+
+# Compare with expected goals predictions from above.
+predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+
+```
+
+
 
 
 

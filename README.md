@@ -12,6 +12,14 @@ devtools::install_github("opisthokonta/goalmodel")
 Whats new
 =========
 
+### Version 0.3
+
+-   New function expg\_from\_probabilities(). This converts win-draw-lose probabilities to expected goals.
+
+-   Two new functions matches\_last\_xdays() and days\_since\_last\_match(). These are useful if you want to include information about the effect of having a busy schedule into your model.
+
+-   Some additional checks have been added make sure that the network of all team that has played each other is fully connected.
+
 ### Version 0.2
 
 -   New faster model fitting. Some models use the built-in glm.fit function to estimate the attack and defence parameters. If the model can not be estimated with the glm.fit function, the results from glm.fit is used as starting values for subsequent fitting. All this should give faster estimation.
@@ -122,7 +130,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.16 seconds
+    ## Model sucsessfully fitted in 1.10 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -188,7 +196,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.70 seconds
+    ## Model sucsessfully fitted in 0.64 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -527,6 +535,90 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
     ## 1           Arsenal    Fulham 0.6047391 0.2083325 0.1869284
     ## 2 Manchester United   Chelsea 0.6539250 0.1917532 0.1543218
     ## 3  Bolton Wanderers Liverpool 0.2780789 0.2603511 0.4615700
+
+Miscalaneous
+============
+
+Reverse enigeering expected goals
+---------------------------------
+
+The function predict\_result that's demonstrated above uses the underlying statistical model and the expected goals from fitted goalmodel to compute the probabilities for win-draw-lose. The function expg\_from\_probabilities can be used to reverse this procedure, going from probabilities to the underlying expected goals.
+
+This can be used to reverse-engineer predictions from other models or even bookmaker odds. The expected goals extracted from this method can for example be used as input to the goalmodel to get attack and defense ratings, and to make new predictions.
+
+Here is some code demonstrating that it can recover the expected goals which are made from a fitted goalmodel with the Poisson distribution.
+
+``` r
+# Win-Draw-Lose probabilities.
+wdl_probs <- predict_result(gm_res, team1=to_predict1, team2=to_predict2, 
+                            return_df = TRUE)
+
+wdl_probs
+```
+
+    ##               team1     team2        p1        pd        p2
+    ## 1           Arsenal    Fulham 0.6197118 0.2035688 0.1767195
+    ## 2 Manchester United   Chelsea 0.6736194 0.1843756 0.1420050
+    ## 3  Bolton Wanderers Liverpool 0.2612112 0.2567706 0.4820183
+
+``` r
+expg_reveng <- expg_from_probabilities(wdl_probs[,c('p1', 'pd', 'p2')])
+
+expg_reveng$expg
+```
+
+    ##          [,1]      [,2]
+    ## [1,] 2.098592 1.0272203
+    ## [2,] 2.278604 0.9458234
+    ## [3,] 1.049001 1.5224753
+
+``` r
+# Compare with expected goals predictions from above.
+predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+```
+
+    ##                               team1     team2    expg1     expg2
+    ## Arsenal                     Arsenal    Fulham 2.119358 1.0243004
+    ## Manchester United Manchester United   Chelsea 2.291612 0.9288743
+    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069974 1.5090408
+
+You can also specify the Dixon-Coles parameter ρ (rho). Unfortunately it is not possible to extract both the two expected goals and rho, since there will typically be a large number of combinations of the three parameters that yield the same probabilities. With rho given as a constant it is however possible to extract the expected goals. Here is how you can recover the expg from the DC model fitted above, using rho = -0.13.
+
+``` r
+# Win-Draw-Lose probabilities from DC model
+wdl_probs_dc <- predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, 
+                            return_df = TRUE)
+
+wdl_probs_dc
+```
+
+    ##               team1     team2        p1        pd        p2
+    ## 1           Arsenal    Fulham 0.6121100 0.2266543 0.1612357
+    ## 2 Manchester United   Chelsea 0.6685366 0.2051625 0.1263009
+    ## 3  Bolton Wanderers Liverpool 0.2524546 0.2903231 0.4572222
+
+``` r
+# Use the rho argument to specify rho.
+expg_reveng_dc <- expg_from_probabilities(wdl_probs_dc[,c('p1', 'pd', 'p2')],
+                                      rho = -0.13)
+
+expg_reveng_dc$expg
+```
+
+    ##          [,1]      [,2]
+    ## [1,] 2.110870 1.0181919
+    ## [2,] 2.283149 0.9231111
+    ## [3,] 1.063635 1.5016544
+
+``` r
+# Compare with expected goals predictions from above.
+predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+```
+
+    ##                               team1     team2    expg1     expg2
+    ## Arsenal                     Arsenal    Fulham 2.119358 1.0243004
+    ## Manchester United Manchester United   Chelsea 2.291612 0.9288743
+    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069974 1.5090408
 
 Other packages
 ==============
