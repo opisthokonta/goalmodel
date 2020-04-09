@@ -45,11 +45,15 @@ predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = 
 #' @rdname predict_expg
 #' @export
 predict_goals <- predict_result <- function(model_fit, team1, team2,
-                                            x1=NULL, x2=NULL){
+                                            x1=NULL, x2=NULL, lwrx=NULL){
 
   stopifnot(length(team1) == length(team2),
             all(team1 %in% model_fit$all_teams),
             all(team2 %in% model_fit$all_teams))
+
+  if (is.null(lwrx)){
+    lwrx <- 25
+  }
 
   if (model_fit$model %in% c('gaussian')){
     warning('Model is Gaussian. Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')
@@ -67,7 +71,7 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
   } else if (model_fit$model == 'negbin'){
     maxgoal <- stats::qnbinom(upper_prob, mu=model_fit$maxgoal, size = 1 / model_fit$parameters$dispersion)
   }
-  maxgoal <- max(10, maxgoal)
+  maxgoal <- max(lwrx, maxgoal)
 
   res <- vector(mode = 'list', length = length(team1))
 
