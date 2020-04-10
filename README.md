@@ -77,7 +77,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.02 seconds
+    ## Model sucsessfully fitted in 0.03 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -130,7 +130,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.10 seconds
+    ## Model sucsessfully fitted in 1.14 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -196,7 +196,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.64 seconds
+    ## Model sucsessfully fitted in 0.65 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -464,7 +464,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.12 seconds
+    ## Model sucsessfully fitted in 1.13 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -539,8 +539,8 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
 Miscalaneous
 ============
 
-Reverse enigeering expected goals
----------------------------------
+Reverse engineering expected goals
+----------------------------------
 
 The function predict\_result that's demonstrated above uses the underlying statistical model and the expected goals from fitted goalmodel to compute the probabilities for win-draw-lose. The function expg\_from\_probabilities can be used to reverse this procedure, going from probabilities to the underlying expected goals.
 

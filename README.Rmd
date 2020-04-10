@@ -335,7 +335,7 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
 
 # Miscalaneous
 
-## Reverse enigeering expected goals
+## Reverse engineering expected goals
 
 The function predict_result that's demonstrated above uses the underlying statistical model and the expected goals from fitted goalmodel to compute the probabilities for win-draw-lose. The function expg_from_probabilities can be used to reverse this procedure, going from probabilities to the underlying expected goals. 
 
