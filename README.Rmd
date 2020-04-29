@@ -18,6 +18,12 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.4
+* Bugfixes: 
+  ** The returned loglikelihood (and R squared, aic, etc) when using weights were sometimes wrong. This is now fixed.
+  
+
+
 ### Version 0.3
 * New function expg_from_probabilities(). This converts win-draw-lose probabilities to expected goals. 
 

@@ -21,14 +21,16 @@
 #' @export
 predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = FALSE){
 
-  stopifnot(length(team1) == length(team2),
-            all(team1 %in% model_fit$all_teams),
-            all(team2 %in% model_fit$all_teams))
+  stopifnot(length(team1) == length(team2))
 
   team1 <- as.character(team1)
   team2 <- as.character(team2)
 
   ee <- lambda_pred(model_fit$parameters, team1, team2, x1, x2)
+
+  if (any(is.na(ee$expg1) | is.na(ee$expg2))){
+    warning('Could not make predictions in some instances.')
+  }
 
   if (return_df){
     out <- data.frame(team1 = team1, team2 = team2,
@@ -38,18 +40,19 @@ predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = 
     out <- ee
   }
 
+
   return(out)
 }
 
 
+
 #' @rdname predict_expg
 #' @export
-predict_goals <- predict_result <- function(model_fit, team1, team2,
+predict_goals <- function(model_fit, team1, team2,
                                             x1=NULL, x2=NULL, lwrx=NULL){
 
-  stopifnot(length(team1) == length(team2),
-            all(team1 %in% model_fit$all_teams),
-            all(team2 %in% model_fit$all_teams))
+  stopifnot(length(team1) == length(team2))
+
 
   if (is.null(lwrx)){
     lwrx <- 25
@@ -80,6 +83,12 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
   }
 
   for (ii in 1:length(team1)){
+
+    if (is.na(expg$expg1[ii]) | is.na(expg$expg2[ii])){
+      res[[ii]] <- matrix(NA, ncol=maxgoal+1, nrow=maxgoal+1)
+      next
+    }
+
     if (model_fit$model %in% c('poisson', 'gaussian')){
       res_tmp <- stats::dpois(0:maxgoal, expg$expg1[ii]) %*% t(stats::dpois(0:maxgoal, expg$expg2[ii]))
     } else if (model_fit$model == 'negbin'){
@@ -122,9 +131,7 @@ predict_goals <- predict_result <- function(model_fit, team1, team2,
 predict_result <- function(model_fit, team1, team2,
                            x1=NULL, x2=NULL, return_df = FALSE){
 
-  stopifnot(length(team1) == length(team2),
-            all(team1 %in% model_fit$all_teams),
-            all(team2 %in% model_fit$all_teams))
+  stopifnot(length(team1) == length(team2))
 
   ## Compute bivariate probability distribution of goals.
   dgoals <- predict_goals(model_fit, team1 = team1, team2 = team2,
@@ -159,9 +166,7 @@ predict_result <- function(model_fit, team1, team2,
 predict_ou <- function(model_fit, team1, team2,
                        x1=NULL, x2=NULL, ou=2.5, return_df = FALSE){
 
-  stopifnot(length(team1) == length(team2),
-            all(team1 %in% model_fit$all_teams),
-            all(team2 %in% model_fit$all_teams))
+  stopifnot(length(team1) == length(team2))
 
   if (model_fit$model %in% c('gaussian')){
     warning('Model is Gaussian Predictions are made using a Poisson model based on the expected goals from the Gaussian fit.')

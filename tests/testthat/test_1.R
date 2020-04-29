@@ -67,15 +67,26 @@ test_that("Fitting Dixon-Coles model", {
 
 context("Model fitting - some fixed parameters")
 
-# Fit the Dixon-Coles model, with most of the parameters fixed to the values in the default model.
 my_fixed_params1 <- list(attack = c('Chelsea' = 0.2), defense= c('Fulham' = -0.09, 'Liverpool' = 0.1))
 
 gm_res_fp1 <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
                           team1 = england_2011$home, team2=england_2011$visitor,
-                          dc=FALSE, fixed_params = my_fixed_params1)
+                          fixed_params = my_fixed_params1)
+
+
+# Fit model with parameter fixed for some teams not in data fixed
+my_fixed_params2 <- list(attack = c('NOTEXIST' = 0.2))
 
 
 test_that("Fitting default model - some parameters fixed", {
+
+  # Fit model with parameter fixed for some teams not in data fixed,
+  # which gives a warning.
+
+  expect_warning(gm_res_fp2 <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                                         team1 = england_2011$home, team2=england_2011$visitor,
+                                         fixed_params = my_fixed_params2))
+
   expect_equal(class(gm_res_fp1), 'goalmodel')
   expect_equal(gm_res_fp1$parameters$dispersion, NULL)
   expect_equal(gm_res_fp1$parameters$gamma, NULL)
@@ -88,6 +99,12 @@ test_that("Fitting default model - some parameters fixed", {
   expect_equal(any(duplicated(names(gm_res_fp1$parameters$attack))), FALSE)
   expect_equal(any(duplicated(names(gm_res_fp1$parameters$defense))), FALSE)
   expect_true(gm_res_fp1$converged)
+
+  expect_true(abs(gm_res_fp2$loglikelihood - gm_res$loglikelihood) < 0.0001)
+  expect_true('NOTEXIST' %in% gm_res_fp2$all_teams)
+  expect_true('NOTEXIST' %in% names(gm_res_fp2$parameters$defense))
+  expect_true('NOTEXIST' %in% names(gm_res_fp2$parameters$attack))
+
 })
 
 
@@ -248,6 +265,22 @@ gm_res_dc0 <- gm_res_dc
 gm_res_dc0$parameters$rho <- 0
 
 pred_expg_dc0 <- predict_expg(gm_res_dc0, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+
+# predict with team not in data
+# predict_expg(gm_res, team1=c('NOTEXIST', 'Fulham', 'Fulham'),
+#              team2=c('Fulham', 'NOTEXIST2', 'Arsenal'), return_df = FALSE)
+#
+#
+# predict_expg(gm_res_fp2, team1=c('NOTEXIST'),
+#              team2=c('Fulham'), return_df = FALSE)
+#
+# predict_goals(gm_res_fp2, team1=c('NOTEXIST', 'Fulham'),
+#              team2=c('Fulham', 'Arsenal'))
+#
+# predict_result(gm_res_fp2, team1=c('NOTEXIST', 'Fulham'),
+#               team2=c('Fulham', 'Arsenal'))
+#
+
 
 test_that("Predict expg.", {
   expect_equal(is.numeric(pred_expg_default[[1]]), TRUE)

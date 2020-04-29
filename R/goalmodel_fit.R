@@ -165,6 +165,8 @@ check_plist <- function(plist, all_teams = NULL){
     }
   }
 
+  # (Optional) Check that the attack and defence parameters
+  # are available for all teams.
   t5 <- TRUE
   if (!is.null(all_teams)){
     if ('attack' %in% plist_names){
@@ -199,6 +201,20 @@ fill_fixed_params <- function(plist, fixed_params = NULL){
       plist$defense <- c(plist$defense, fixed_params$defense)
       fixed_params$defense <- NULL
     }
+
+    # If some fixed parameters are given only to one of attack or defense,
+    # and the other is not in plist, add it as missing.
+    missing_from_attack_idx <- which(!names(plist$defense) %in% names(plist$attack))
+    if (length(missing_from_attack_idx) > 0){
+      plist$attack[names(plist$defense)[missing_from_attack_idx]] <- NA
+    }
+
+    missing_from_defense_idx <- which(!names(plist$attack) %in% names(plist$defense))
+    if (length(missing_from_defense_idx) > 0){
+      plist$defense[names(plist$attack)[missing_from_defense_idx]] <- NA
+    }
+
+
 
     # Add the any other fixed parameters to the parameter list.
     if (any(!names(fixed_params) %in% c('attack', 'defense'))){
@@ -426,11 +442,22 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 
   # Compute the log-likelihood.
   if (model %in% c('poisson', 'negbin', 'cmp')){
-    loglik <- sum(stats::dpois(x = c(goals1, goals2),
-                               lambda=glm_res$fitted.values, log=TRUE))
+    if (is.null(weights)){
+      loglik <- sum(stats::dpois(x = c(goals1, goals2),
+                                 lambda=glm_res$fitted.values, log=TRUE))
+    } else {
+      loglik <- sum(stats::dpois(x = c(goals1, goals2),
+                                 lambda=glm_res$fitted.values, log=TRUE)*rep(weights, 2))
+    }
+
   } else if (model == 'gaussian'){
+    if (is.null(weights)){
     loglik <- sum(stats::dnorm(x = c(goals1, goals2),
                                mean=glm_res$fitted.values, log=TRUE))
+    } else {
+      loglik <- sum(stats::dnorm(x = c(goals1, goals2),
+                                 mean=glm_res$fitted.values, log=TRUE)*rep(weights,2))
+    }
   }
 
 
@@ -516,7 +543,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
   warning_messages <- c()
 
-  stopifnot(length(goals1)==length(goals2),
+  stopifnot(length(goals1) == length(goals2),
             length(goals2) == length(team1),
             length(team1) == length(team2),
             length(goals1) >= 1,
@@ -779,6 +806,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
     mean_goals <- stats::weighted.mean(all_goals, w = rep(weights, 2))
   }
 
+
   ## Deviances needed for R squared.
   if (model == 'poisson'){
     if (is.null(weights)){
@@ -786,7 +814,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
       loglikelihood_null <- sum(stats::dpois(all_goals, lambda = mean_goals, log=TRUE))
     } else {
       loglikelihood_saturated <- sum(stats::dpois(all_goals, lambda = all_goals, log=TRUE)*rep(weights,2))
-      loglikelihood_null <- sum(stats::dpois(all_goals, lambda = mean_goals, log=TRUE)*weights)
+      loglikelihood_null <- sum(stats::dpois(all_goals, lambda = mean_goals, log=TRUE)*rep(weights,2))
     }
 
   } else if (model == 'negbin'){
@@ -825,9 +853,18 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
   r_squared <- 1 - (deviance / deviance_null)
 
+
+  # Update the all_teams variable to include teams not in data, but with
+  # fixed parameters.
+  all_param_teams <- unique(c(names(parameter_list$defense), names(parameter_list$attack)))
+  if (any(!all_param_teams %in% all_teams)){
+    all_teams <- sort(all_param_teams)
+  }
+
   # sort the attack and defence paramters alphabetically
   parameter_list$defense <- parameter_list$defense[order(names(parameter_list$defense))]
   parameter_list$attack <- parameter_list$attack[order(names(parameter_list$attack))]
+
 
   if (any(is.na(unlist(parameter_list)))){
     wm_tmp <- 'Some parameters are NA.'
