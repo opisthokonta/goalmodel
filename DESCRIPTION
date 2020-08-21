@@ -11,6 +11,9 @@ LazyData: true
 Imports:
     MASS,
     engsoccerdata,
-    dplyr
+    dplyr,
+    Rcpp
 RoxygenNote: 7.0.2
 Suggests: testthat
+LinkingTo: 
+    Rcpp

@@ -80,7 +80,7 @@ my_fixed_params2 <- list(attack = c('NOTEXIST' = 0.2))
 
 test_that("Fitting default model - some parameters fixed", {
 
-  # Fit model with parameter fixed for some teams not in data fixed,
+  # Fit model with parameter fixed for some teams not in data,
   # which gives a warning.
 
   expect_warning(gm_res_fp2 <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
@@ -182,12 +182,23 @@ dcmp_vec <- dCMP(x=0:6, lambda=4.4, upsilon = 1.2)
 pcmp_vec <- pCMP(x=6, lambda=4.4, upsilon = 1.2)
 dp_diff <- sum(dcmp_vec) - pcmp_vec
 
+dcmp_log_vec <- dCMP(x=0:6, lambda=4.4, upsilon = 1.2, log = TRUE)
+
+dcmp_vec2 <- dCMP(x=c(0,NA,2,3), lambda=4.4, upsilon = 1.2)
+pcmp_vec2 <- pCMP(x=c(0,NA,2,3), lambda=c(1.2, NA), upsilon = 0.98)
+
+
 test_that("CMP", {
   expect_true(all(dcmp_vec >= 0))
   expect_true(all(dcmp_vec <= 1))
   expect_true(pcmp_vec >= 0)
   expect_true(pcmp_vec <= 1)
   expect_true(dp_diff < 0.0001)
+  expect_true(all(dcmp_log_vec == log(dcmp_vec)))
+  expect_true(is.na(dcmp_vec2[2]))
+  expect_true(all(!is.na(dcmp_vec2[-2])))
+  expect_true(all(is.na(pcmp_vec2[c(2,4)])))
+  expect_true(all(!is.na(pcmp_vec2[-c(2,4)])))
 })
 
 

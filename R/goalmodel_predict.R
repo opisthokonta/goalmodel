@@ -3,11 +3,11 @@
 
 
 
-#' Predict methods for goalmodel Fits
+#' Predict Methods for goalmodel Fits
 #'
 #' Make predictions using a fitted goalmodel.
 #'
-#' These functions predict expected goals, the probabiltieis fo individual scorelines, or
+#' These functions predict expected goals, the probabiltieis for individual scorelines, or
 #' 1x2 results and over/under probabilities.
 #'
 #' @param model_fit A goalmodel object.
@@ -16,6 +16,7 @@
 #' @param x1 Additional covariates to be used for making predictions.
 #' @param x2 Additional covariates to be used for making predictions.
 #' @param ou Numeric, defining the over/under. Default is 2.5.
+#' @param lwrx Numeric. The lowest upper limit for the number of goals to compute probabilities for.
 #' @param return_df Whether a data.frame should be returned.
 #'
 #' @export

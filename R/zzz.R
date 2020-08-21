@@ -4,3 +4,7 @@
 https://ko-fi.com/opisthokonta')
 
 }
+
+.onUnload <- function (libpath) {
+  library.dynam.unload("goalmodel", libpath)
+}
