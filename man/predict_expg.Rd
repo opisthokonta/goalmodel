@@ -5,7 +5,7 @@
 \alias{predict_goals}
 \alias{predict_result}
 \alias{predict_ou}
-\title{Predict methods for goalmodel Fits}
+\title{Predict Methods for goalmodel Fits}
 \usage{
 predict_expg(model_fit, team1, team2, x1 = NULL, x2 = NULL, return_df = FALSE)
 
@@ -43,12 +43,14 @@ predict_ou(
 
 \item{return_df}{Whether a data.frame should be returned.}
 
+\item{lwrx}{Numeric. The lowest upper limit for the number of goals to compute probabilities for.}
+
 \item{ou}{Numeric, defining the over/under. Default is 2.5.}
 }
 \description{
 Make predictions using a fitted goalmodel.
 }
 \details{
-These functions predict expected goals, the probabiltieis fo individual scorelines, or
+These functions predict expected goals, the probabiltieis for individual scorelines, or
 1x2 results and over/under probabilities.
 }

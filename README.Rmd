@@ -19,9 +19,10 @@ devtools::install_github("opisthokonta/goalmodel")
 # Whats new
 
 ### Version 0.4
+* The prediction functions now works when trying to predict the outcome when a team is not in the model. The predictions will be NA.
+
 * Bugfixes: 
   ** The returned loglikelihood (and R squared, aic, etc) when using weights were sometimes wrong. This is now fixed.
-  
 
 
 ### Version 0.3

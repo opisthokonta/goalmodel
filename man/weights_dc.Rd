@@ -9,10 +9,19 @@ weights_dc(dates, xi = 0, currentDate = NULL)
 \arguments{
 \item{dates}{a vector of dates (of type Date).}
 
-\item{xi}{A numeric with the time dumping factor. Ususally a value buetween 0.001 and 0.003.}
+\item{xi}{A numeric with the time dumping factor. Ususally a value between 0.001 and 0.003.}
 
 \item{currentDate}{The date which to count backwards from. Default to the latest date in dates.}
 }
 \description{
-Compute Dixon-Coles weights
+This function computes weights that give less weight to games further back in time.
+}
+\details{
+The weigths w are computed using the formula
+
+w = exp(-xi*t)
+
+where xi is a tuning parameter that decides the amount of down-weighting,
+and t is the number of days since currentDate. If any date in dates are after
+currentDate, the corresponding weights are set to 0.
 }
