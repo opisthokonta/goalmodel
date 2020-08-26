@@ -12,6 +12,14 @@ devtools::install_github("opisthokonta/goalmodel")
 Whats new
 =========
 
+### Version 0.4
+
+-   The prediction functions now works when trying to predict the outcome when a team is not in the model. The predictions will be NA.
+
+-   Some of the functions related to the Conway-Maxwell-Poisson distribution is re-implemented in Rcpp. This should give somewhat faster estimation.
+
+-   Bugfixes: \*\* The returned loglikelihood (and R squared, aic, etc) when using weights were sometimes wrong. This is now fixed.
+
 ### Version 0.3
 
 -   New function expg\_from\_probabilities(). This converts win-draw-lose probabilities to expected goals.
@@ -77,7 +85,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.03 seconds
+    ## Model sucsessfully fitted in 0.02 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -130,7 +138,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.14 seconds
+    ## Model sucsessfully fitted in 1.22 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -196,7 +204,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.65 seconds
+    ## Model sucsessfully fitted in 0.63 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -464,7 +472,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.13 seconds
+    ## Model sucsessfully fitted in 1.12 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 

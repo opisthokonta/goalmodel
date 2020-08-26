@@ -21,6 +21,8 @@ devtools::install_github("opisthokonta/goalmodel")
 ### Version 0.4
 * The prediction functions now works when trying to predict the outcome when a team is not in the model. The predictions will be NA.
 
+* Some of the functions related to the Conway-Maxwell-Poisson distribution is re-implemented in Rcpp. This should give somewhat faster estimation.
+
 * Bugfixes: 
   ** The returned loglikelihood (and R squared, aic, etc) when using weights were sometimes wrong. This is now fixed.
 
