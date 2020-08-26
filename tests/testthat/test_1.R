@@ -277,20 +277,7 @@ gm_res_dc0$parameters$rho <- 0
 
 pred_expg_dc0 <- predict_expg(gm_res_dc0, team1=to_predict1, team2=to_predict2, return_df = FALSE)
 
-# predict with team not in data
-# predict_expg(gm_res, team1=c('NOTEXIST', 'Fulham', 'Fulham'),
-#              team2=c('Fulham', 'NOTEXIST2', 'Arsenal'), return_df = FALSE)
-#
-#
-# predict_expg(gm_res_fp2, team1=c('NOTEXIST'),
-#              team2=c('Fulham'), return_df = FALSE)
-#
-# predict_goals(gm_res_fp2, team1=c('NOTEXIST', 'Fulham'),
-#              team2=c('Fulham', 'Arsenal'))
-#
-# predict_result(gm_res_fp2, team1=c('NOTEXIST', 'Fulham'),
-#               team2=c('Fulham', 'Arsenal'))
-#
+
 
 
 test_that("Predict expg.", {
@@ -301,6 +288,50 @@ test_that("Predict expg.", {
   expect_equal(is.numeric(pred_expg_dc[[2]]), TRUE)
   expect_equal(is.numeric(pred_expg_dc0[[2]]), TRUE)
 })
+
+
+
+# Need to supress warnings here, otherwise the tests will not pass.
+suppressWarnings({
+
+  ## Copy pasta from the "some parameters fixed" tests.
+  gm_res_fp2 <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                          team1 = england_2011$home, team2=england_2011$visitor,
+                          fixed_params = my_fixed_params2)
+
+  # predict with team not in data
+  p_expg_na1 <- predict_expg(gm_res, team1=c('NOTEXIST', 'Fulham', 'Fulham'),
+                             team2=c('Fulham', 'NOTEXIST2', 'Arsenal'), return_df = FALSE)
+
+
+  p_expg_na2 <- predict_expg(gm_res_fp2, team1=c('NOTEXIST'),
+                             team2=c('Fulham'), return_df = FALSE)
+
+
+  p_goals_na <- predict_goals(gm_res_fp2, team1=c('NOTEXIST', 'Fulham'),
+                              team2=c('Fulham', 'Arsenal'))
+
+  p_result_na <- predict_result(gm_res_fp2, team1=c('NOTEXIST', 'Fulham'),
+                                team2=c('Fulham', 'Arsenal'))
+
+
+})
+
+
+
+
+
+test_that("Predict expg unknwon teams", {
+
+  expect_true(is.na(p_expg_na2$expg2[1]))
+  expect_true(!is.na(p_expg_na2$expg1[1]))
+  expect_true(all(is.na(p_goals_na[[1]])))
+  expect_true(all(!is.na(p_goals_na[[2]])))
+  expect_true(all(is.na(p_result_na[1,])))
+  expect_true(all(!is.na(p_result_na[2,])))
+
+})
+
 
 
 pred_result_default <- predict_result(gm_res, team1=to_predict1, team2=to_predict2, return_df = FALSE)
