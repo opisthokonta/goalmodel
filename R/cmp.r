@@ -84,7 +84,7 @@ lambdaCMP <- function(mu, upsilon, method='sum', error = 0.01){
 }
 
 
-#' Estimate theta of the he Conway-Maxwell-Poisson Distribution
+#' Estimate upsilon of the Conway-Maxwell-Poisson Distribution
 #'
 #' Given the estimated rate (lambda) or mean (mu) vector, estimate dispersion paramter (uspilon) of
 #' the Conway-Maxwell-Poisson Distribution.

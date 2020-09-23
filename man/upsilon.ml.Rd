@@ -2,7 +2,7 @@
 % Please edit documentation in R/cmp.r
 \name{upsilon.ml}
 \alias{upsilon.ml}
-\title{Estimate theta of the he Conway-Maxwell-Poisson Distribution}
+\title{Estimate upsilon of the Conway-Maxwell-Poisson Distribution}
 \usage{
 upsilon.ml(
   x,
