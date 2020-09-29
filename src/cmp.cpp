@@ -124,19 +124,19 @@ Rcpp::NumericVector dCMP(Rcpp::IntegerVector& x,
 //' @rdname CMP
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector pCMP(Rcpp::IntegerVector& x,
+Rcpp::NumericVector pCMP(Rcpp::IntegerVector& q,
                          Rcpp::NumericVector& lambda,
                          Rcpp::NumericVector& upsilon,
                          bool lower_tail=true,
                          double error = 0.01){
 
-  // if any of th einputs are empty, return empty vector.
-  if (lambda.length() == 0 | upsilon.length() == 0 | x.length() == 0){
+  // if any of the inputs are empty, return empty vector.
+  if (lambda.length() == 0 | upsilon.length() == 0 | q.length() == 0){
     Rcpp::NumericVector empty_vec (0);
     return empty_vec;
   }
 
-  int N = std::max(std::max(x.length(), lambda.length()), upsilon.length());
+  int N = std::max(std::max(q.length(), lambda.length()), upsilon.length());
 
   Rcpp::NumericVector res (N);
 
@@ -148,21 +148,21 @@ Rcpp::NumericVector pCMP(Rcpp::IntegerVector& x,
   for (int ii = 0; ii != N; ++ii){
 
     // Compute the index to look up.
-    int x_idx = ii % x.size();
+    int q_idx = ii % q.size();
     int lambda_idx = ii % lambda.size();
     int upsilon_idx = ii % upsilon.size();
     int nconst_idx = ii % nconst.size();
 
     // Check if nconst is na is the same as checking if any of lambda or upsilon are NA.
-    if (Rcpp::IntegerVector::is_na(x[x_idx]) || Rcpp::NumericVector::is_na(nconst[nconst_idx])){
+    if (Rcpp::IntegerVector::is_na(q[q_idx]) || Rcpp::NumericVector::is_na(nconst[nconst_idx])){
       res[ii] = NA_REAL;
       continue;
     } else {
 
       // loop from 0 to x.
       log_prob = 0.0;
-      if (x[x_idx] >= 0){
-        for (int jj = 0; jj != x[x_idx]+1; ++jj){
+      if (q[q_idx] >= 0){
+        for (int jj = 0; jj != q[q_idx]+1; ++jj){
           log_prob += std::exp((jj * std::log(lambda[lambda_idx])) - (upsilon[upsilon_idx] * lgamma(1 + jj)) - std::log(nconst[nconst_idx]));
         }
       }
@@ -184,6 +184,83 @@ Rcpp::NumericVector pCMP(Rcpp::IntegerVector& x,
   return res;
 
 }
+
+//' @rdname CMP
+//' @export
+// [[Rcpp::export]]
+Rcpp::NumericVector qCMP(Rcpp::NumericVector& p,
+                         Rcpp::NumericVector& lambda,
+                         Rcpp::NumericVector& upsilon,
+                         bool lower_tail = true,
+                         double error = 0.01){
+
+
+  // if any of the inputs are empty, return empty vector.
+  if (lambda.length() == 0 | upsilon.length() == 0 | p.length() == 0){
+    Rcpp::NumericVector empty_vec (0);
+    return empty_vec;
+  }
+
+  int N = std::max(std::max(p.length(), lambda.length()), upsilon.length());
+
+  Rcpp::NumericVector res (N);
+
+  // The normalizing constant.
+  Rcpp::NumericVector nconst = CMP_normalizing_constant(lambda, upsilon, error=error);
+
+  double qq;
+
+  for (int ii = 0; ii != N; ++ii){
+
+    // Compute the index to look up.
+    int p_idx = ii % p.size();
+    int nconst_idx = ii % nconst.size();
+
+    if (Rcpp::IntegerVector::is_na(p[p_idx]) || Rcpp::NumericVector::is_na(nconst[nconst_idx])){
+      res[ii] = NA_REAL;
+      continue;
+    }
+
+    if (lower_tail == false){
+      p[p_idx] = 1 - p[p_idx];
+    }
+
+    if (p[p_idx] < 0 || p[p_idx] > 1){
+      qq = R_NaN;
+    } else if (p[p_idx] == 0){
+      qq = 0;
+    } else if (p[p_idx] < 1){
+
+      // Compute the index to look up.
+      int lambda_idx = ii % lambda.size();
+      int upsilon_idx = ii % upsilon.size();
+
+      qq = 0;
+      double cur_prob = 0;
+
+      while (true){
+        cur_prob += std::exp((qq * std::log(lambda[lambda_idx])) - (upsilon[upsilon_idx] * lgamma(1 + qq)) - std::log(nconst[nconst_idx]));
+
+        if (cur_prob > p[p_idx]){
+          break;
+        }
+
+        ++qq;
+
+      }
+    } else if (p[p_idx] == 1){
+      qq = R_PosInf;
+    }
+
+    res[ii] = qq;
+
+  }
+
+
+  return res;
+
+}
+
 
 
 

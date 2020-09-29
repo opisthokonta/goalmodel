@@ -27,6 +27,8 @@
 #' left hand side sum is approximated.
 #'
 #' @param x vector of non-negative integers.
+#' @param p vector of quantiles.
+#' @param q vector of probabilities.
 #' @param lambda vector of non-negative rate parameters.
 #' @param upsilon vector of non-negative dispersion parameters.
 #' @param mu vector of non-negative mean parameters.

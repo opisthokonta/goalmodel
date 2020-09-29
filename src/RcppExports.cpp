@@ -34,17 +34,32 @@ BEGIN_RCPP
 END_RCPP
 }
 // pCMP
-Rcpp::NumericVector pCMP(Rcpp::IntegerVector& x, Rcpp::NumericVector& lambda, Rcpp::NumericVector& upsilon, bool lower_tail, double error);
-RcppExport SEXP _goalmodel_pCMP(SEXP xSEXP, SEXP lambdaSEXP, SEXP upsilonSEXP, SEXP lower_tailSEXP, SEXP errorSEXP) {
+Rcpp::NumericVector pCMP(Rcpp::IntegerVector& q, Rcpp::NumericVector& lambda, Rcpp::NumericVector& upsilon, bool lower_tail, double error);
+RcppExport SEXP _goalmodel_pCMP(SEXP qSEXP, SEXP lambdaSEXP, SEXP upsilonSEXP, SEXP lower_tailSEXP, SEXP errorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector& >::type q(qSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type upsilon(upsilonSEXP);
     Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
     Rcpp::traits::input_parameter< double >::type error(errorSEXP);
-    rcpp_result_gen = Rcpp::wrap(pCMP(x, lambda, upsilon, lower_tail, error));
+    rcpp_result_gen = Rcpp::wrap(pCMP(q, lambda, upsilon, lower_tail, error));
+    return rcpp_result_gen;
+END_RCPP
+}
+// qCMP
+Rcpp::NumericVector qCMP(Rcpp::NumericVector& p, Rcpp::NumericVector& lambda, Rcpp::NumericVector& upsilon, bool lower_tail, double error);
+RcppExport SEXP _goalmodel_qCMP(SEXP pSEXP, SEXP lambdaSEXP, SEXP upsilonSEXP, SEXP lower_tailSEXP, SEXP errorSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type upsilon(upsilonSEXP);
+    Rcpp::traits::input_parameter< bool >::type lower_tail(lower_tailSEXP);
+    Rcpp::traits::input_parameter< double >::type error(errorSEXP);
+    rcpp_result_gen = Rcpp::wrap(qCMP(p, lambda, upsilon, lower_tail, error));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -93,6 +108,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_goalmodel_CMP_normalizing_constant", (DL_FUNC) &_goalmodel_CMP_normalizing_constant, 3},
     {"_goalmodel_dCMP", (DL_FUNC) &_goalmodel_dCMP, 5},
     {"_goalmodel_pCMP", (DL_FUNC) &_goalmodel_pCMP, 5},
+    {"_goalmodel_qCMP", (DL_FUNC) &_goalmodel_qCMP, 5},
     {"_goalmodel_eCMP", (DL_FUNC) &_goalmodel_eCMP, 4},
     {"_goalmodel_lambda_approx", (DL_FUNC) &_goalmodel_lambda_approx, 2},
     {"_goalmodel_lambda_cond", (DL_FUNC) &_goalmodel_lambda_cond, 4},

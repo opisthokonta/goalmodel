@@ -179,13 +179,16 @@ test_that("Fitting Gaussian model", {
 context("CMP functions")
 
 dcmp_vec <- dCMP(x=0:6, lambda=4.4, upsilon = 1.2)
-pcmp_vec <- pCMP(x=6, lambda=4.4, upsilon = 1.2)
+pcmp_vec <- pCMP(q=6, lambda=4.4, upsilon = 1.2)
 dp_diff <- sum(dcmp_vec) - pcmp_vec
 
 dcmp_log_vec <- dCMP(x=0:6, lambda=4.4, upsilon = 1.2, log = TRUE)
 
 dcmp_vec2 <- dCMP(x=c(0,NA,2,3), lambda=4.4, upsilon = 1.2)
-pcmp_vec2 <- pCMP(x=c(0,NA,2,3), lambda=c(1.2, NA), upsilon = 0.98)
+pcmp_vec2 <- pCMP(q=c(0,NA,2,3), lambda=c(1.2, NA), upsilon = 0.98)
+
+qCMP_vec <- qCMP(p = seq(0,1, by=0.05), lambda=2.2, upsilon=1)
+qpois_vec <- qpois(p = seq(0,1, by=0.05), lambda=2.2)
 
 
 test_that("CMP", {
@@ -199,6 +202,7 @@ test_that("CMP", {
   expect_true(all(!is.na(dcmp_vec2[-2])))
   expect_true(all(is.na(pcmp_vec2[c(2,4)])))
   expect_true(all(!is.na(pcmp_vec2[-c(2,4)])))
+  expect_true(all(qCMP_vec == qpois_vec))
 })
 
 

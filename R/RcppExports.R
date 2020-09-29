@@ -13,8 +13,14 @@ dCMP <- function(x, lambda, upsilon, log = FALSE, error = 0.01) {
 
 #' @rdname CMP
 #' @export
-pCMP <- function(x, lambda, upsilon, lower_tail = TRUE, error = 0.01) {
-    .Call(`_goalmodel_pCMP`, x, lambda, upsilon, lower_tail, error)
+pCMP <- function(q, lambda, upsilon, lower_tail = TRUE, error = 0.01) {
+    .Call(`_goalmodel_pCMP`, q, lambda, upsilon, lower_tail, error)
+}
+
+#' @rdname CMP
+#' @export
+qCMP <- function(p, lambda, upsilon, lower_tail = TRUE, error = 0.01) {
+    .Call(`_goalmodel_qCMP`, p, lambda, upsilon, lower_tail, error)
 }
 
 #' @rdname CMP

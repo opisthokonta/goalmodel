@@ -3,6 +3,7 @@
 \name{dCMP}
 \alias{dCMP}
 \alias{pCMP}
+\alias{qCMP}
 \alias{eCMP}
 \alias{CMP}
 \alias{lambdaCMP}
@@ -10,7 +11,9 @@
 \usage{
 dCMP(x, lambda, upsilon, log = FALSE, error = 0.01)
 
-pCMP(x, lambda, upsilon, lower_tail = TRUE, error = 0.01)
+pCMP(q, lambda, upsilon, lower_tail = TRUE, error = 0.01)
+
+qCMP(p, lambda, upsilon, lower_tail = TRUE, error = 0.01)
 
 eCMP(lambda, upsilon, method = "sum", error = 0.01)
 
@@ -27,7 +30,11 @@ lambdaCMP(mu, upsilon, method = "sum", error = 0.01)
 
 \item{error}{numeric. Upper bound for the error in computing the normalizing constant.}
 
+\item{q}{vector of probabilities.}
+
 \item{lower_tail}{logical; if TRUE (default), probabilities are P[X ≤ x], otherwise, P[X > x].}
+
+\item{p}{vector of quantiles.}
 
 \item{method}{character; either 'fast' or 'sum'. See 'details'.}
 
