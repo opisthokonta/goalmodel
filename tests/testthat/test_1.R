@@ -283,7 +283,6 @@ pred_expg_dc0 <- predict_expg(gm_res_dc0, team1=to_predict1, team2=to_predict2, 
 
 
 
-
 test_that("Predict expg.", {
   expect_equal(is.numeric(pred_expg_default[[1]]), TRUE)
   expect_equal(is.numeric(pred_expg_dc[[1]]), TRUE)
@@ -353,6 +352,10 @@ test_that("Predict result", {
 pred_goals_default <- predict_goals(gm_res, team1=to_predict1, team2=to_predict2)
 pred_goals_dc <- predict_goals(gm_res_dc, team1=to_predict1, team2=to_predict2)
 
+pred_goals_default_df <- predict_goals(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+pred_goals_dc_df <- predict_goals(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+
+
 test_that("Predict goals", {
   expect_equal(is.matrix(pred_goals_default[[1]]), TRUE)
   expect_equal(is.matrix(pred_goals_dc[[1]]), TRUE)
@@ -362,7 +365,18 @@ test_that("Predict goals", {
   expect_equal(any(is.na(pred_goals_dc[[1]])), FALSE)
   expect_equal(any(is.na(pred_goals_default[[2]])), FALSE)
   expect_equal(any(is.na(pred_goals_dc[[2]])), FALSE)
+
+  expect_equal(is.data.frame(pred_goals_default_df), TRUE)
+  expect_equal(is.data.frame(pred_goals_dc_df), TRUE)
+
+  # The sum of probabilites should be the number of matches predicted
+  # (ie the probabilities for each match should sum to 1)
+  expect_true(abs(sum(pred_goals_default_df$probability) - length(to_predict1)) <= 0.001)
+  expect_true(abs(sum(pred_goals_dc_df$probability) - length(to_predict1)) <= 0.001)
+
 })
+
+
 
 
 context("Misc.")

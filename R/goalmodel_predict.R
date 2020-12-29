@@ -49,10 +49,11 @@ predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = 
 
 #' @rdname predict_expg
 #' @export
-predict_goals <- function(model_fit, team1, team2,
-                                            x1=NULL, x2=NULL, lwrx=NULL){
+predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
+                          return_df = FALSE, lwrx=NULL){
 
-  stopifnot(length(team1) == length(team2))
+  stopifnot(length(team1) == length(team2),
+            is.logical(return_df))
 
 
   if (is.null(lwrx)){
@@ -77,49 +78,90 @@ predict_goals <- function(model_fit, team1, team2,
   }
   maxgoal <- max(lwrx, maxgoal)
 
-  res <- vector(mode = 'list', length = length(team1))
-
   if (model_fit$model == 'poisson' & 'dispersion' %in% names(model_fit$parameters)){
     warning('The model object has a dispersion parameter, but model is Poisson. The dispersion parameter will not have an effect.')
   }
 
-  for (ii in 1:length(team1)){
+  if (return_df){
 
-    if (is.na(expg$expg1[ii]) | is.na(expg$expg2[ii])){
-      res[[ii]] <- matrix(NA, ncol=maxgoal+1, nrow=maxgoal+1)
-      next
-    }
+    res <- data.frame(team1 = rep(team1, each=(maxgoal+1)^2),
+                      team2 = rep(team2, each=(maxgoal+1)^2),
+                      goals1 = rep(0:maxgoal, maxgoal+1   ),
+                      goals2 = rep(0:maxgoal, each=maxgoal+1 ),
+                      stringsAsFactors = FALSE)
+
+    expg1_long <- expg$expg1[res$team1]
+    expg2_long <- expg$expg2[res$team2]
+
 
     if (model_fit$model %in% c('poisson', 'gaussian')){
-      res_tmp <- stats::dpois(0:maxgoal, expg$expg1[ii]) %*% t(stats::dpois(0:maxgoal, expg$expg2[ii]))
+      res$probability <- dpois(res$goals1, expg1_long) * dpois(res$goals2, expg2_long)
     } else if (model_fit$model == 'negbin'){
-      res_tmp <- stats::dnbinom(0:maxgoal, mu = expg$expg1[ii], size = 1 / model_fit$parameters$dispersion) %*%
-        t(stats::dnbinom(0:maxgoal, mu = expg$expg2[ii], size = 1 / model_fit$parameters$dispersion))
+      res$probability <- stats::dnbinom(res$goals1, mu = expg1_long, size = 1 / model_fit$parameters$dispersion) *
+        stats::dnbinom(res$goals2, mu = expg2_long, size = 1 / model_fit$parameters$dispersion)
     } else if (model_fit$model == 'cmp'){
-        # Convert the expected goals in to CMP-lambda.
-        ll1 <- lambdaCMP(mu = expg$expg1[ii], upsilon = model_fit$parameters$dispersion, method = 'fast')
-        ll2 <- lambdaCMP(mu = expg$expg2[ii], upsilon = model_fit$parameters$dispersion, method = 'fast')
 
-        res_tmp <- dCMP(0:maxgoal, lambda =ll1, upsilon = model_fit$parameters$dispersion) %*%
-        t(dCMP(0:maxgoal, lambda =ll2, upsilon = model_fit$parameters$dispersion))
+      ll1 <- lambdaCMP(mu = expg$expg1, upsilon = model_fit$parameters$dispersion, method = 'fast')
+      ll2 <- lambdaCMP(mu = expg$expg2, upsilon = model_fit$parameters$dispersion, method = 'fast')
+
+      names(ll1) <- names(expg$expg1)
+      names(ll2) <- names(expg$expg2)
+
+      res$probability <- dCMP(res$goals1, lambda = ll1[res$team1], upsilon = model_fit$parameters$dispersion) *
+        dCMP(res$goals2, lambda = ll2[res$team2], upsilon = model_fit$parameters$dispersion)
     }
 
     # Dixon-Coles adjustemt.
     if (!is.null(model_fit$parameters$rho)){
-      correctionmat <- matrix(tau(c(0,1,0,1), c(0,0,1,1),
-                                  rep(expg$expg1[ii], 4),
-                                  rep(expg$expg2[ii], 4), model_fit$parameters$rho), nrow=2)
-      res_tmp[1:2, 1:2] <- res_tmp[1:2, 1:2] * correctionmat
+      res$probability <- tau(goals1 = res$goals1, goals2 = res$goals2,
+                            lambda1 = expg1_long, lambda2 = expg2_long,
+                            rho = model_fit$parameters$rho) * res$probability
     }
 
 
-    res_tmp <- res_tmp / sum(res_tmp) # normalize to make sure probabilities sum to 1.
+  } else {
 
-    if (any(res_tmp < 0)){
-      warning(sprintf('predict_goals: negative proabilities in game %d', ii))
+    # Return list of matrices.
+    res <- vector(mode = 'list', length = length(team1))
+
+    for (ii in 1:length(team1)){
+
+      if (is.na(expg$expg1[ii]) | is.na(expg$expg2[ii])){
+        res[[ii]] <- matrix(NA, ncol=maxgoal+1, nrow=maxgoal+1)
+        next
+      }
+
+      if (model_fit$model %in% c('poisson', 'gaussian')){
+        res_tmp <- stats::dpois(0:maxgoal, expg$expg1[ii]) %*% t(stats::dpois(0:maxgoal, expg$expg2[ii]))
+      } else if (model_fit$model == 'negbin'){
+        res_tmp <- stats::dnbinom(0:maxgoal, mu = expg$expg1[ii], size = 1 / model_fit$parameters$dispersion) %*%
+          t(stats::dnbinom(0:maxgoal, mu = expg$expg2[ii], size = 1 / model_fit$parameters$dispersion))
+      } else if (model_fit$model == 'cmp'){
+          # Convert the expected goals in to CMP-lambda.
+          ll1 <- lambdaCMP(mu = expg$expg1[ii], upsilon = model_fit$parameters$dispersion, method = 'fast')
+          ll2 <- lambdaCMP(mu = expg$expg2[ii], upsilon = model_fit$parameters$dispersion, method = 'fast')
+
+          res_tmp <- dCMP(0:maxgoal, lambda = ll1, upsilon = model_fit$parameters$dispersion) %*%
+          t(dCMP(0:maxgoal, lambda = ll2, upsilon = model_fit$parameters$dispersion))
+      }
+
+      # Dixon-Coles adjustemt.
+      if (!is.null(model_fit$parameters$rho)){
+        correctionmat <- matrix(tau(c(0,1,0,1), c(0,0,1,1),
+                                    rep(expg$expg1[ii], 4),
+                                    rep(expg$expg2[ii], 4), model_fit$parameters$rho), nrow=2)
+        res_tmp[1:2, 1:2] <- res_tmp[1:2, 1:2] * correctionmat
+      }
+
+      # normalize to make sure probabilities sum to 1.
+      res_tmp <- res_tmp / sum(res_tmp)
+
+      if (any(res_tmp < 0)){
+        warning(sprintf('predict_goals: negative proabilities in game %d', ii))
+      }
+
+      res[[ii]] <- res_tmp
     }
-
-    res[[ii]] <- res_tmp
   }
 
   return(res)
