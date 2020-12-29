@@ -273,7 +273,7 @@ negloglik <- function(params, goals1, goals2, team1, team2,
     log_lik_2 <- stats::dnorm(goals2, mean = expg$expg2, sd = exp(plist$sigma), log=TRUE)
   } else if (model == 'cmp'){
     exp_log_upsilon <- exp(plist$dispersion)
-    # TOOD
+
     # This is a dirty hack essentially setting har upper and lower
     # bounds for the the dispersion parameter.
     if (exp_log_upsilon < 0.7){return(Inf)}

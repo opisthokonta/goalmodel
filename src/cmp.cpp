@@ -338,8 +338,8 @@ Rcpp::NumericVector eCMP(Rcpp::NumericVector& lambda,
 
 
 // Approximation of lambda, based on the
-// aprroximation for expectation given in Shmueli et al (2005).
-//[[Rcpp::export]]
+// approximation for expectation given in Shmueli et al (2005).
+// [[Rcpp::export]]
 Rcpp::NumericVector lambda_approx(Rcpp::NumericVector& mu,
                                       Rcpp::NumericVector& upsilon){
 
@@ -358,7 +358,7 @@ Rcpp::NumericVector lambda_approx(Rcpp::NumericVector& mu,
     int mu_idx = ii % mu.size();
     int upsilon_idx = ii % upsilon.size();
 
-    res[ii] =  std::pow(mu[mu_idx] + ((upsilon[upsilon_idx]- 1) / (2*upsilon[upsilon_idx])), upsilon[upsilon_idx]);
+    res[ii] = std::pow(mu[mu_idx] + ((upsilon[upsilon_idx] - 1) / (2*upsilon[upsilon_idx])), upsilon[upsilon_idx]);
   }
 
   return res;
