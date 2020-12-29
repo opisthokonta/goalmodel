@@ -1,6 +1,8 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 The goalmodel package let you build prediction models for the number of goals scored in sport games. The models are primarily aimed at modelling and predicting football (soccer) scores, but could also be applicable for similar sports, such as hockey and handball.
 
+If you find this package useful, please consider supporting the development at <https://ko-fi.com/opisthokonta>
+
 Installation
 ============
 
@@ -12,35 +14,21 @@ devtools::install_github("opisthokonta/goalmodel")
 Whats new
 =========
 
+### Version 0.4.1
+
+-   New function qCMP(), the quantile function for the Conway-Maxwell-Poisson distribution.
+
+-   The predict\_goals() function has a new argument return\_df. If return\_df = TRUE, the function returns a long data.frame instead of a list of matrices.
+
 ### Version 0.4
 
 -   The prediction functions now works when trying to predict the outcome when a team is not in the model. The predictions will be NA.
 
 -   Some of the functions related to the Conway-Maxwell-Poisson distribution is re-implemented in Rcpp. This should give somewhat faster estimation.
 
--   Bugfixes: \*\* The returned loglikelihood (and R squared, aic, etc) when using weights were sometimes wrong. This is now fixed.
+-   Bugfix: The returned loglikelihood (and R squared, aic, etc) when using weights were sometimes wrong. This is now fixed.
 
-### Version 0.3
-
--   New function expg\_from\_probabilities(). This converts win-draw-lose probabilities to expected goals.
-
--   Two new functions matches\_last\_xdays() and days\_since\_last\_match(). These are useful if you want to include information about the effect of having a busy schedule into your model.
-
--   Some additional checks have been added make sure that the network of all team that has played each other is fully connected.
-
-### Version 0.2
-
--   New faster model fitting. Some models use the built-in glm.fit function to estimate the attack and defence parameters. If the model can not be estimated with the glm.fit function, the results from glm.fit is used as starting values for subsequent fitting. All this should give faster estimation.
-
--   Can now fit Conway-Maxwell-Poisson (CMP) models. This is still a bit slow and unstable, so two-step estimation is recomended. See the section on the CMP below for more info. Several new functions related to the CMP model is also available if you want to use them for additional modelling.
-
--   The model = 'ls' option is removed. The option to use model = 'gaussian', is still available and should be equivalent to the old 'ls' option.
-
--   Some changes to what is returned by the goalmodel function, but this should not cause much problems to your existing code since it is only related to some of the more technical parts of the output.
-
-### Version 0.1
-
--   Initial release
+See NEWS.md for changes for complete version history.
 
 The default model
 =================
@@ -68,6 +56,7 @@ Models are fitted with the goalmodel function. The minimum required input are ve
 library(goalmodel)
 library(dplyr) # Useful for data manipulation. 
 library(engsoccerdata) # Some data.
+library(Rcpp)
 
 # Load data from English Premier League, 2011-12 season.
 england %>% 
@@ -138,7 +127,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.22 seconds
+    ## Model sucsessfully fitted in 1.13 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -472,7 +461,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.12 seconds
+    ## Model sucsessfully fitted in 1.13 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 

@@ -62,6 +62,7 @@ Models are fitted with the goalmodel function. The minimum required input are ve
 library(goalmodel)
 library(dplyr) # Useful for data manipulation. 
 library(engsoccerdata) # Some data.
+library(Rcpp)
 
 # Load data from English Premier League, 2011-12 season.
 england %>% 
