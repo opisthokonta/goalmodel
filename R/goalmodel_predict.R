@@ -95,7 +95,7 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
 
 
     if (model_fit$model %in% c('poisson', 'gaussian')){
-      res$probability <- dpois(res$goals1, expg1_long) * dpois(res$goals2, expg2_long)
+      res$probability <- stats::dpois(res$goals1, expg1_long) * stats::dpois(res$goals2, expg2_long)
     } else if (model_fit$model == 'negbin'){
       res$probability <- stats::dnbinom(res$goals1, mu = expg1_long, size = 1 / model_fit$parameters$dispersion) *
         stats::dnbinom(res$goals2, mu = expg2_long, size = 1 / model_fit$parameters$dispersion)
