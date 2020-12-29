@@ -2,6 +2,7 @@
 
 require(engsoccerdata)
 require(dplyr)
+require(Rcpp) # Should not be neccecary to load Rcpp like this, but sometimes it fails if not.
 
 # Load data from English Premier League, 2011-12 season.
 engsoccerdata::england %>%
