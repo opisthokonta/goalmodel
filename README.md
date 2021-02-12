@@ -14,6 +14,10 @@ devtools::install_github("opisthokonta/goalmodel")
 Whats new
 =========
 
+### Version 0.4.2
+
+-   New function dDCP(), the probability mass function for the Dixon-Coles model.
+
 ### Version 0.4.1
 
 -   New function qCMP(), the quantile function for the Conway-Maxwell-Poisson distribution.
@@ -127,7 +131,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.13 seconds
+    ## Model sucsessfully fitted in 1.14 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -193,7 +197,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.63 seconds
+    ## Model sucsessfully fitted in 0.71 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 

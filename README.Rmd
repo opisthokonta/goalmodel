@@ -20,6 +20,9 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.4.2
+* New function dDCP(), the probability mass function for the Dixon-Coles model.
+
 ### Version 0.4.1
 * New function qCMP(), the quantile function for the Conway-Maxwell-Poisson distribution.
   
