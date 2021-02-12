@@ -405,6 +405,65 @@ test_that("The weighting function", {
 
 })
 
+
+# Test the dDCP function.
+
+# Dum to 1.
+dcp_sum <- sum(dDCP(x1=rep(0:15,16),
+                x2=rep(0:15,each=16), 0.5, 1.2))
+
+# Check that it equals independent Poisson where it should
+dcp_test1 <- dDCP(x1=3, x2=2, 0.5, 1.2, rho=0.01) == dpois(3, lambda=0.5) * dpois(2, lambda=1.2)
+dcp_test2 <- dDCP(x1=1, x2=2:5, 0.5, 1.2, rho=0.01) == dpois(1, lambda=0.5) * dpois(2:5, lambda=1.2)
+
+dcp_test3 <- dDCP(x1=3, x2=2, 0.5, 1.2, rho=-0.02) == dpois(3, lambda=0.5) * dpois(2, lambda=1.2)
+dcp_test4 <- dDCP(x1=1, x2=2:5, 0.5, 1.2, rho=-0.02) == dpois(1, lambda=0.5) * dpois(2:5, lambda=1.2)
+
+# Check that it is different from the independent Poisson where it should
+dcp_test5 <- dDCP(x1=1, x2=0:1, 0.5, 1.2, rho=0.01) != dpois(1, lambda=0.5) * dpois(0:1, lambda=1.2)
+
+
+# Compare dDCP with the result from predict_goals using a fitted DC model.
+#
+
+# Only look athe first game.
+to_test_idx <- pred_goals_dc_df$team1 == 'Arsenal'
+
+# Compute the probabilities using dDCP.
+dc_prob2 <- dDCP(x1 = pred_goals_dc_df$goals1[to_test_idx], x2 = pred_goals_dc_df$goals2[to_test_idx],
+                lambda1 = pred_expg_dc$expg1[1], lambda2 = pred_expg_dc$expg2[1],
+                rho = gm_res_dc$parameters$rho)
+
+# Add to data.frame,
+pred_goals_dc_df_subset <- pred_goals_dc_df[to_test_idx,]
+pred_goals_dc_df_subset$probability2 <- dc_prob2
+
+# Compare
+dcp_test6 <- all(abs(pred_goals_dc_df_subset$probability - pred_goals_dc_df_subset$probability2) < 0.00001)
+
+
+test_that('Dixon-Coles probability function', {
+
+  expect_true(abs(dcp_sum - 1) < 0.00001)
+
+  expect_true(dcp_test1)
+  expect_true(all(dcp_test2))
+
+  expect_true(dcp_test3)
+  expect_true(all(dcp_test4))
+
+  expect_true(all(dcp_test5))
+
+  expect_true(all(dcp_test6))
+
+
+
+})
+
+
+
+
+
 context("expg_from_probabilities")
 
 

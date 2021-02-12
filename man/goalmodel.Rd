@@ -70,7 +70,7 @@ The parameters list contain both the fixed and estimated parameters. It contains
 \itemize{
 \item attack - A named mumeric of the attack parameters.
 \item defense - A named mumeric of the attack parameters.
-\item intercept - an unnamd length 1 numeric with the intercept.
+\item intercept - A length 1 numeric with the intercept.
 }
 The following parameter components are optional, and depends on what kind of model is fitted.
 \itemize{
@@ -78,8 +78,8 @@ The following parameter components are optional, and depends on what kind of mod
 \item rho - If dc=TRUE, an unnamd length 1 numeric with the Dixon-Coles adjustment.
 \item gamma - If rs=TRUE, an unnamd length 1 numeric with the Rue-Salvesen adjustment.
 \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
-\item dispersion - The dispersion paramter in the Negative Binomial model.
-\item sigma - The standard deviation in a gaussian model.
+\item dispersion - The dispersion paramter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
+\item sigma - The standard deviation in a Gaussian model.
 }
 }
 \description{

@@ -2,6 +2,7 @@
 
 S3method(summary,goalmodel)
 export(dCMP)
+export(dDCP)
 export(days_since_last_match)
 export(eCMP)
 export(expg_from_probabilities)
