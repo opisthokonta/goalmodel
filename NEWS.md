@@ -1,4 +1,11 @@
 
+
+
+# Version 0.4.2
+
+  * New function dDCP(), the probability mass function for the Dixon-Coles model.
+
+
 # goalmodel 0.4.1
 
   * New function qCMP(), the quantile function for the Conway-Maxwell-Poisson distribution.
@@ -29,12 +36,12 @@
 
    * New faster model fitting. Some models use the built-in glm.fit function to estimate the attack and defence parameters. If the model can not be estimated with the glm.fit function, the results from glm.fit is used as starting values for subsequent fitting. All this should give faster estimation.
 
-    * Can now fit Conway-Maxwell-Poisson (CMP) models. This is still a bit slow and unstable, so two-step estimation is recomended. See the section on the CMP below for more info. Several new functions related to the CMP model is also available if you want to use them for additional modelling.
+   * Can now fit Conway-Maxwell-Poisson (CMP) models. This is still a bit slow and unstable, so two-step estimation is recomended. See the section on the CMP below for more info. Several new functions related to the CMP model is also available if you want to use them for additional modelling.
 
-    * The model = 'ls' option is removed. The option to use model = 'gaussian', is still available and should be equivalent to the old 'ls' option.
+   * The model = 'ls' option is removed. The option to use model = 'gaussian', is still available and should be equivalent to the old 'ls' option.
 
-    * Some changes to what is returned by the goalmodel function, but this should not cause much problems to your existing code since it is only related to some of the more technical parts of the output.
+   * Some changes to what is returned by the goalmodel function, but this should not cause much problems to your existing code since it is only related to some of the more technical parts of the output.
 
 # goalmodel 0.1
-    - Initial release
+   * Initial release
 
