@@ -3,7 +3,11 @@ The goalmodel package let you build prediction models for the number of goals sc
 
 If you find this package useful, please consider supporting the development at <https://ko-fi.com/opisthokonta>
 
+<<<<<<< HEAD
 [![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)](https://ko-fi.com/opisthokonta)
+=======
+![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)(<https://ko-fi.com/opisthokonta>)
+>>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
 
 Installation
 ============
@@ -140,7 +144,11 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
+<<<<<<< HEAD
     ## Model sucsessfully fitted in 1.25 seconds
+=======
+    ## Model sucsessfully fitted in 1.13 seconds
+>>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -206,7 +214,11 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
+<<<<<<< HEAD
     ## Model sucsessfully fitted in 0.73 seconds
+=======
+    ## Model sucsessfully fitted in 0.68 seconds
+>>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
