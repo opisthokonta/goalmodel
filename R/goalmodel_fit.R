@@ -490,7 +490,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 #' @param rs Logical (FALSE by default). If TRUE an adjustment for teams to over and under estimate the opponent.
 #' @param fixed_params A list with parameters that should be kept constant while the other parameters are estimated from data.
 #' @param weights Numeric vector of weigths that determine the influence of each match on the final parameter estimates.
-#' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.
+#' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), Conway-Maxwell-Poisson ('cmp') or a Gaussian ('gaussian') model.
 #' @param optim_method String indicating which optimization method to use in case the model can't be fitted with gml.fit(). See \code{\link{optim}} for more details.
 #'
 #'
@@ -837,15 +837,25 @@ goalmodel <- function(goals1, goals2, team1, team2,
       loglikelihood_null <- sum(stats::dnorm(all_goals, mean = mean_goals, sd=sigma0_tmp, log=TRUE)*rep(weights,2))
     }
   } else if (model == 'cmp'){
-    ## TODO
     if (is.null(weights)){
-      loglikelihood_saturated <- NA
-      loglikelihood_null <- NA
+      dispersion0_tmp <- upsilon.ml(x = all_goals, parameters = mean_goals, param_type = 'mu', method='fast')
+      loglikelihood_saturated <- sum(dCMP(all_goals, lambda = lambdaCMP(all_goals, parameter_list$dispersion, method='fast'),
+                                          upsilon = parameter_list$dispersion, log=TRUE))
+      loglikelihood_saturated[is.nan(loglikelihood_saturated)] <- 0
+      loglikelihood_null <- sum(dCMP(all_goals, lambda = lambdaCMP(mean_goals, dispersion0_tmp, method='fast'),
+                                    upsilon = dispersion0_tmp, log=TRUE))
     } else {
-      loglikelihood_saturated <- NA
-      loglikelihood_null <- NA
+      dispersion0_tmp <- upsilon.ml(x = all_goals, parameters = mean_goals,
+                                    param_type = 'mu', method='fast', weights = rep(weights,2))
+      loglikelihood_saturated <- sum(dCMP(all_goals, lambda = lambdaCMP(all_goals, parameter_list$dispersion, method='fast'),
+                                          upsilon = parameter_list$dispersion, log=TRUE)*rep(weights,2))
+      loglikelihood_saturated[is.nan(loglikelihood_saturated)] <- 0
+      loglikelihood_null <- sum(dCMP(all_goals, lambda = lambdaCMP(mean_goals, dispersion0_tmp, method='fast'),
+                                     upsilon = dispersion0_tmp, log=TRUE)*rep(weights,2))
     }
   }
+
+  # TODO: How should deviances and R^2 be computed in the Dixon-Coles model?
 
   deviance <- 2 * (loglikelihood_saturated - loglikelihood)
   deviance_null <- 2 * (loglikelihood_saturated - loglikelihood_null)
