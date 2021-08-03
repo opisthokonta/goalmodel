@@ -16,7 +16,8 @@
 #' @param x1 Additional covariates to be used for making predictions.
 #' @param x2 Additional covariates to be used for making predictions.
 #' @param ou Numeric, defining the over/under. Default is 2.5.
-#' @param lwrx Numeric. The lowest upper limit for the number of goals to compute probabilities for.
+#' @param maxgoal Numeric, the upper limit of how many goals to make predictions for. If not set, a resonable upper limit will be found based on the data used to fit the model.
+#' @param lwrx Numeric. The lowest upper limit for the number of goals to compute probabilities for, if maxgoal is not given.
 #' @param return_df Whether a data.frame should be returned.
 #'
 #' @export
@@ -36,7 +37,7 @@ predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = 
   if (return_df){
     out <- data.frame(team1 = team1, team2 = team2,
                       expg1 = ee$expg1, expg2 = ee$expg2,
-                      stringsAsFactors = FALSE)
+                      stringsAsFactors = FALSE, row.names = NULL)
   } else {
     out <- ee
   }
@@ -50,7 +51,7 @@ predict_expg <- function(model_fit, team1, team2, x1=NULL, x2=NULL, return_df = 
 #' @rdname predict_expg
 #' @export
 predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
-                          return_df = FALSE, lwrx=NULL){
+                          return_df = FALSE, maxgoal = NULL, lwrx=NULL){
 
   stopifnot(length(team1) == length(team2),
             is.logical(return_df))
@@ -69,14 +70,22 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
                        x1 = x1, x2 = x2, return_df = FALSE)
 
   # find the upper limit of where to evaluate the probability function.
-  upper_prob <- 0.999
-  if (model_fit$model %in% c('poisson', 'gaussian', 'cmp')){
-    # TODO: This is probably not optimal if CMP is over-dispersed.
-    maxgoal <- stats::qpois(upper_prob, lambda=model_fit$maxgoal)
-  } else if (model_fit$model == 'negbin'){
-    maxgoal <- stats::qnbinom(upper_prob, mu=model_fit$maxgoal, size = 1 / model_fit$parameters$dispersion)
+  if (is.null(maxgoal)){
+    upper_prob <- 0.999
+    if (model_fit$model %in% c('poisson', 'gaussian', 'cmp')){
+      # TODO: This is probably not optimal if CMP is over-dispersed.
+      maxgoal <- stats::qpois(upper_prob, lambda=model_fit$maxgoal)
+    } else if (model_fit$model == 'negbin'){
+      maxgoal <- stats::qnbinom(upper_prob, mu=model_fit$maxgoal, size = 1 / model_fit$parameters$dispersion)
+    }
+    maxgoal <- max(lwrx, maxgoal)
+  } else {
+    stopifnot(is.numeric(maxgoal),
+              length(maxgoal) == 1,
+              maxgoal >= 0)
+    maxgoal <- ceiling(maxgoal)
   }
-  maxgoal <- max(lwrx, maxgoal)
+
 
   if (model_fit$model == 'poisson' & 'dispersion' %in% names(model_fit$parameters)){
     warning('The model object has a dispersion parameter, but model is Poisson. The dispersion parameter will not have an effect.')

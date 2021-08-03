@@ -16,6 +16,7 @@ predict_goals(
   x1 = NULL,
   x2 = NULL,
   return_df = FALSE,
+  maxgoal = NULL,
   lwrx = NULL
 )
 
@@ -51,7 +52,9 @@ predict_ou(
 
 \item{return_df}{Whether a data.frame should be returned.}
 
-\item{lwrx}{Numeric. The lowest upper limit for the number of goals to compute probabilities for.}
+\item{maxgoal}{Numeric, the upper limit of how many goals to make predictions for. If not set, a resonable upper limit will be found based on the data used to fit the model.}
+
+\item{lwrx}{Numeric. The lowest upper limit for the number of goals to compute probabilities for, if maxgoal is not given.}
 
 \item{ou}{Numeric, defining the over/under. Default is 2.5.}
 }
