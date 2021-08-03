@@ -43,7 +43,7 @@ goalmodel(
 
 \item{weights}{Numeric vector of weigths that determine the influence of each match on the final parameter estimates.}
 
-\item{model}{String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin') or a Gaussian ('gaussian) model.}
+\item{model}{String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), Conway-Maxwell-Poisson ('cmp') or a Gaussian ('gaussian') model.}
 
 \item{optim_method}{String indicating which optimization method to use in case the model can't be fitted with gml.fit(). See \code{\link{optim}} for more details.}
 }
