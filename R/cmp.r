@@ -105,18 +105,31 @@ lambdaCMP <- function(mu, upsilon, method='sum', error = 0.01){
 #'
 #' @export
 upsilon.ml <- function(x, parameters, param_type = 'lambda', method = 'sum',
+                       weights = NULL,
                        lower=0.7, upper=4){
 
   stopifnot(param_type %in% c('lambda', 'mu'))
 
+  if (!is.null(weights)){
+    stopifnot(is.numeric(weights),
+              length(x)==length(weights),
+              all(weights >= 0),
+              all(!is.na(weights)),
+              !all(weights == 0))
+  }
+
   # The negative log-likelihood
-  obj_func <- function(par, x, params, is_lambda = TRUE, lmethod='sum'){
+  obj_func <- function(par, x, params, weights=NULL, is_lambda = TRUE, lmethod='sum'){
 
     if (is_lambda == FALSE){
       params <- lambdaCMP(mu = params, upsilon = par, method=lmethod)
     }
 
-    sum(dCMP(x, lambda = params, upsilon = par, log=TRUE) * -1)
+    if (is.null(weights)){
+      sum(dCMP(x, lambda = params, upsilon = par, log=TRUE) * -1)
+    } else {
+      sum(weights*dCMP(x, lambda = params, upsilon = par, log=TRUE) * -1)
+    }
   }
 
   is_lambda <- param_type == 'lambda'
@@ -124,6 +137,7 @@ upsilon.ml <- function(x, parameters, param_type = 'lambda', method = 'sum',
   upsilon_init <- 1
   optim_res <- stats::optim(upsilon_init, fn=obj_func,
                              x=x, params=parameters,
+                             weights = weights,
                              is_lambda = is_lambda,
                              lmethod=method,
                              method='Brent', lower=lower, upper=upper)

@@ -9,6 +9,7 @@ upsilon.ml(
   parameters,
   param_type = "lambda",
   method = "sum",
+  weights = NULL,
   lower = 0.7,
   upper = 4
 )
