@@ -3,11 +3,7 @@ The goalmodel package let you build prediction models for the number of goals sc
 
 If you find this package useful, please consider supporting the development at <https://ko-fi.com/opisthokonta>
 
-<<<<<<< HEAD
 [![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)](https://ko-fi.com/opisthokonta)
-=======
-![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)(<https://ko-fi.com/opisthokonta>)
->>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
 
 Installation
 ============
@@ -144,11 +140,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-<<<<<<< HEAD
-    ## Model sucsessfully fitted in 1.25 seconds
-=======
-    ## Model sucsessfully fitted in 1.13 seconds
->>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
+    ## Model sucsessfully fitted in 1.14 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -214,11 +206,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-<<<<<<< HEAD
-    ## Model sucsessfully fitted in 0.73 seconds
-=======
-    ## Model sucsessfully fitted in 0.68 seconds
->>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
+    ## Model sucsessfully fitted in 0.63 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -486,7 +474,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.29 seconds
+    ## Model sucsessfully fitted in 1.13 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 

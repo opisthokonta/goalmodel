@@ -11,11 +11,7 @@ The goalmodel package let you build prediction models for the number of goals sc
 
 If you find this package useful, please consider supporting the development at https://ko-fi.com/opisthokonta
 
-<<<<<<< HEAD
 [![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)](https://ko-fi.com/opisthokonta)
-=======
-![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)(https://ko-fi.com/opisthokonta)
->>>>>>> c87a73cbae599fdd1e37009d3e451681780c857e
 
 
 # Installation
