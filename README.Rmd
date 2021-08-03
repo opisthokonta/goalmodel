@@ -11,6 +11,9 @@ The goalmodel package let you build prediction models for the number of goals sc
 
 If you find this package useful, please consider supporting the development at https://ko-fi.com/opisthokonta
 
+![ko-fi banner and link](README_files/SupportMe_red@2x_scaled)(https://ko-fi.com/opisthokonta)
+
+
 # Installation
 
 ```{r, eval=FALSE}
@@ -20,6 +23,13 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.4.3
+
+* Pseudo R-squared is now computed for fitted CMP models.
+* Can now do weighted esimtation of the CMP dispersion parameter with the upsilon.ml() function.
+* New argument maxgoal in predict_goals()
+* predict_expg() does not return a data.frame with row.names if return_df=TRUE.
+  
 ### Version 0.4.2
 * New function dDCP(), the probability mass function for the Dixon-Coles model.
 
@@ -27,7 +37,6 @@ devtools::install_github("opisthokonta/goalmodel")
 * New function qCMP(), the quantile function for the Conway-Maxwell-Poisson distribution.
   
 * The predict_goals() function has a new argument return_df. If return_df = TRUE, the function returns a long data.frame instead of a list of matrices. 
-
 
 ### Version 0.4
 * The prediction functions now works when trying to predict the outcome when a team is not in the model. The predictions will be NA.

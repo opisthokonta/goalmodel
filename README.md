@@ -3,6 +3,8 @@ The goalmodel package let you build prediction models for the number of goals sc
 
 If you find this package useful, please consider supporting the development at <https://ko-fi.com/opisthokonta>
 
+![ko-fi banner and link](README_files/SupportMe_red@2x_scaled)(<https://ko-fi.com/opisthokonta>)
+
 Installation
 ============
 
@@ -13,6 +15,13 @@ devtools::install_github("opisthokonta/goalmodel")
 
 Whats new
 =========
+
+### Version 0.4.3
+
+-   Pseudo R-squared is now computed for fitted CMP models.
+-   Can now do weighted esimtation of the CMP dispersion parameter with the upsilon.ml() function.
+-   New argument maxgoal in predict\_goals()
+-   predict\_expg() does not return a data.frame with row.names if return\_df=TRUE.
 
 ### Version 0.4.2
 
@@ -131,7 +140,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.14 seconds
+    ## Model sucsessfully fitted in 1.12 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -197,7 +206,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.71 seconds
+    ## Model sucsessfully fitted in 0.62 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -250,10 +259,10 @@ to_predict2 <- c('Fulham', 'Chelsea', 'Liverpool')
 predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
-    ##                               team1     team2    expg1     expg2
-    ## Arsenal                     Arsenal    Fulham 2.119358 1.0243004
-    ## Manchester United Manchester United   Chelsea 2.291612 0.9288743
-    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069974 1.5090408
+    ##               team1     team2    expg1     expg2
+    ## 1           Arsenal    Fulham 2.119358 1.0243004
+    ## 2 Manchester United   Chelsea 2.291612 0.9288743
+    ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
 
 We can also get the probabilities of the final outcome (team1 win, draw, team2 win) with the predict\_result function.
 
@@ -578,10 +587,10 @@ expg_reveng$expg
 predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
-    ##                               team1     team2    expg1     expg2
-    ## Arsenal                     Arsenal    Fulham 2.119358 1.0243004
-    ## Manchester United Manchester United   Chelsea 2.291612 0.9288743
-    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069974 1.5090408
+    ##               team1     team2    expg1     expg2
+    ## 1           Arsenal    Fulham 2.119358 1.0243004
+    ## 2 Manchester United   Chelsea 2.291612 0.9288743
+    ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
 
 You can also specify the Dixon-Coles parameter ρ (rho). Unfortunately it is not possible to extract both the two expected goals and rho, since there will typically be a large number of combinations of the three parameters that yield the same probabilities. With rho given as a constant it is however possible to extract the expected goals. Here is how you can recover the expg from the DC model fitted above, using rho = -0.13.
 
@@ -616,10 +625,10 @@ expg_reveng_dc$expg
 predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
-    ##                               team1     team2    expg1     expg2
-    ## Arsenal                     Arsenal    Fulham 2.119358 1.0243004
-    ## Manchester United Manchester United   Chelsea 2.291612 0.9288743
-    ## Bolton Wanderers   Bolton Wanderers Liverpool 1.069974 1.5090408
+    ##               team1     team2    expg1     expg2
+    ## 1           Arsenal    Fulham 2.119358 1.0243004
+    ## 2 Manchester United   Chelsea 2.291612 0.9288743
+    ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
 
 Other packages
 ==============
