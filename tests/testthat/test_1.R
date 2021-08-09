@@ -12,8 +12,8 @@ engsoccerdata::england %>%
          home = as.character(home),
          visitor= as.character(visitor)) -> england_2011
 
-#########################################
 
+# Model fitting - Default model ----
 context("Model fitting - Default model")
 
 # fit default model
@@ -35,7 +35,7 @@ test_that("Fitting default model", {
   expect_true(gm_res$converged)
 })
 
-
+# Model fitting - DC model -----
 context("Model fitting - DC model")
 
 
@@ -63,9 +63,49 @@ test_that("Fitting Dixon-Coles model", {
 })
 
 
+# Model fitting - Negbin model ----
+context("Model fitting - Negbin model")
+
+# fit negative binomial model
+gm_res_nbin <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                         team1 = england_2011$home, team2=england_2011$visitor, model='negbin')
 
 
+test_that("Fitting Negative Binomial model", {
+  expect_equal(class(gm_res_nbin), 'goalmodel')
+  expect_true(is.null(gm_res_nbin$parameters$rho))
+  expect_true(is.null(gm_res_nbin$parameters$sigma))
+  expect_true(is.numeric(gm_res_nbin$parameters$dispersion))
+  expect_true(length(gm_res_nbin$parameters$dispersion) == 1)
+  expect_equal(any(is.na(gm_res_nbin$parameters$attack)), FALSE)
+  expect_equal(any(is.na(gm_res_nbin$parameters$defense)), FALSE)
+  expect_equal(names(gm_res_nbin$parameters$attack), names(gm_res_nbin$parameters$defense))
+  expect_equal(any(duplicated(names(gm_res_nbin$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_nbin$parameters$defense))), FALSE)
+  expect_true(gm_res_nbin$converged)
+})
 
+
+# Model fitting - Gaussian ----
+context("Model fitting - Gaussian")
+
+# Fit a Gaussian model.
+gm_res_gaussian <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                             team1 = england_2011$home, team2=england_2011$visitor, model='gaussian')
+
+test_that("Fitting Gaussian model", {
+  expect_equal(class(gm_res_gaussian), 'goalmodel')
+  expect_equal(gm_res_gaussian$parameters$dispersion, NULL)
+  expect_equal(is.numeric(gm_res_gaussian$parameters$sigma), TRUE)
+  expect_equal(any(is.na(gm_res_gaussian$parameters$attack)), FALSE)
+  expect_equal(any(is.na(gm_res_gaussian$parameters$defense)), FALSE)
+  expect_equal(gm_res_gaussian$parameters$gamma, NULL)
+  expect_equal(names(gm_res_gaussian$parameters$attack), names(gm_res_gaussian$parameters$defense))
+  expect_equal(gm_res_gaussian$converged, TRUE)
+})
+
+
+# Model fitting - some fixed parameters ----
 context("Model fitting - some fixed parameters")
 
 my_fixed_params1 <- list(attack = c('Chelsea' = 0.2), defense= c('Fulham' = -0.09, 'Liverpool' = 0.1))
@@ -108,7 +148,7 @@ test_that("Fitting default model - some parameters fixed", {
 
 })
 
-
+# Model fitting - 2-step estimation ----
 context("Model fitting - 2-step estimation")
 
 ## Test if two-step estimation works as it should.
@@ -137,7 +177,7 @@ test_that("Fitting Dixon-Coles model - 2step", {
 })
 
 
-
+# Additional covariates ----
 context("Additional covariates")
 
 
@@ -158,25 +198,7 @@ test_that("Manual HFA", {
 
 
 
-context("Model fitting - Gaussian")
-
-# Fit a Gaussian model.
-gm_res_gaussian <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
-                          team1 = england_2011$home, team2=england_2011$visitor, model='gaussian')
-
-
-test_that("Fitting Gaussian model", {
-  expect_equal(class(gm_res_gaussian), 'goalmodel')
-  expect_equal(gm_res_gaussian$parameters$dispersion, NULL)
-  expect_equal(is.numeric(gm_res_gaussian$parameters$sigma), TRUE)
-  expect_equal(any(is.na(gm_res_gaussian$parameters$attack)), FALSE)
-  expect_equal(any(is.na(gm_res_gaussian$parameters$defense)), FALSE)
-  expect_equal(gm_res_gaussian$parameters$gamma, NULL)
-  expect_equal(names(gm_res_gaussian$parameters$attack), names(gm_res_gaussian$parameters$defense))
-  expect_equal(gm_res_gaussian$converged, TRUE)
-})
-
-
+# CMP functions ----
 context("CMP functions")
 
 dcmp_vec <- dCMP(x=0:6, lambda=4.4, upsilon = 1.2)
@@ -208,7 +230,7 @@ test_that("CMP", {
 
 
 
-
+# Model fitting - CMP 2 - step ----
 context("Model fitting - CMP 2 - step")
 
 
@@ -244,31 +266,9 @@ test_that("Fitting CMP model", {
   expect_true(upsilon_diff < 0.001)
 })
 
-context("Model fitting - Negbin model")
-
-# fit negative binomial model
-gm_res_nbin <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
-                    team1 = england_2011$home, team2=england_2011$visitor, model='negbin')
 
 
-test_that("Fitting Negative Binomial model", {
-  expect_equal(class(gm_res_nbin), 'goalmodel')
-  expect_true(is.null(gm_res_nbin$parameters$rho))
-  expect_true(is.null(gm_res_nbin$parameters$sigma))
-  expect_true(is.numeric(gm_res_nbin$parameters$dispersion))
-  expect_true(length(gm_res_nbin$parameters$dispersion) == 1)
-  expect_equal(any(is.na(gm_res_nbin$parameters$attack)), FALSE)
-  expect_equal(any(is.na(gm_res_nbin$parameters$defense)), FALSE)
-  expect_equal(names(gm_res_nbin$parameters$attack), names(gm_res_nbin$parameters$defense))
-  expect_equal(any(duplicated(names(gm_res_nbin$parameters$attack))), FALSE)
-  expect_equal(any(duplicated(names(gm_res_nbin$parameters$defense))), FALSE)
-  expect_true(gm_res_nbin$converged)
-})
-
-
-
-
-
+# Making predictions ----
 context("Making predictions")
 
 to_predict1 <- c('Arsenal', 'Manchester United')
@@ -276,6 +276,10 @@ to_predict2 <- c('Fulham', 'Chelsea')
 
 pred_expg_default <- predict_expg(gm_res, team1=to_predict1, team2=to_predict2, return_df = FALSE)
 pred_expg_dc <- predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_expg_nbin <- predict_expg(gm_res_nbin, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_expg_cmp <- predict_expg(gm_res_cmp, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+
+all(sapply(pred_expg_cmp, function(x) all(!is.na(x))))
 
 gm_res_dc0 <- gm_res_dc
 gm_res_dc0$parameters$rho <- 0
@@ -283,16 +287,26 @@ gm_res_dc0$parameters$rho <- 0
 pred_expg_dc0 <- predict_expg(gm_res_dc0, team1=to_predict1, team2=to_predict2, return_df = FALSE)
 
 
-
 test_that("Predict expg.", {
   expect_equal(is.numeric(pred_expg_default[[1]]), TRUE)
   expect_equal(is.numeric(pred_expg_dc[[1]]), TRUE)
+  expect_equal(is.numeric(pred_expg_nbin[[1]]), TRUE)
+  expect_equal(is.numeric(pred_expg_cmp[[1]]), TRUE)
   expect_equal(is.numeric(pred_expg_dc0[[1]]), TRUE)
+
   expect_equal(is.numeric(pred_expg_default[[2]]), TRUE)
   expect_equal(is.numeric(pred_expg_dc[[2]]), TRUE)
+  expect_equal(is.numeric(pred_expg_nbin[[2]]), TRUE)
+  expect_equal(is.numeric(pred_expg_cmp[[2]]), TRUE)
   expect_equal(is.numeric(pred_expg_dc0[[2]]), TRUE)
-})
 
+  all(sapply(pred_expg_default, function(x) all(!is.na(x))))
+  all(sapply(pred_expg_dc, function(x) all(!is.na(x))))
+  all(sapply(pred_expg_nbin, function(x) all(!is.na(x))))
+  all(sapply(pred_expg_cmp, function(x) all(!is.na(x))))
+  all(sapply(pred_expg_dc0, function(x) all(!is.na(x))))
+
+})
 
 
 # Need to supress warnings here, otherwise the tests will not pass.
@@ -323,29 +337,41 @@ suppressWarnings({
 
 
 
-
-
 test_that("Predict expg unknwon teams", {
 
   expect_true(is.na(p_expg_na2$expg2[1]))
   expect_true(!is.na(p_expg_na2$expg1[1]))
+
   expect_true(all(is.na(p_goals_na[[1]])))
   expect_true(all(!is.na(p_goals_na[[2]])))
+
   expect_true(all(is.na(p_result_na[1,])))
   expect_true(all(!is.na(p_result_na[2,])))
 
 })
 
 
-
 pred_result_default <- predict_result(gm_res, team1=to_predict1, team2=to_predict2, return_df = FALSE)
 pred_result_dc <- predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_result_nbin <- predict_result(gm_res_nbin, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_result_cmp <- predict_result(gm_res_cmp, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+
 
 test_that("Predict result", {
   expect_equal(is.numeric(pred_result_default[[1]]), TRUE)
   expect_equal(is.numeric(pred_result_dc[[1]]), TRUE)
+  expect_equal(is.numeric(pred_result_nbin[[1]]), TRUE)
+  expect_equal(is.numeric(pred_result_cmp[[1]]), TRUE)
+
   expect_equal(is.numeric(pred_result_default[[2]]), TRUE)
   expect_equal(is.numeric(pred_result_dc[[2]]), TRUE)
+  expect_equal(is.numeric(pred_result_nbin[[2]]), TRUE)
+  expect_equal(is.numeric(pred_result_cmp[[2]]), TRUE)
+
+  expect_true(all(rowSums(pred_result_default) == 1))
+  expect_true(all(rowSums(pred_result_dc) == 1))
+  expect_true(all(rowSums(pred_result_nbin) == 1))
+  expect_true(all(rowSums(pred_result_cmp) == 1))
 })
 
 
@@ -379,8 +405,8 @@ test_that("Predict goals", {
 
 
 
-
-context("Misc.")
+# DC weight function----
+context("DC weights")
 
 # the weighting function.
 my_weights1 <- weights_dc(england_2011$Date, xi=0.0019)
@@ -406,9 +432,12 @@ test_that("The weighting function", {
 })
 
 
-# Test the dDCP function.
 
-# Dum to 1.
+# dDCP function ----
+context("dDCP function")
+
+
+# Sum to 1.
 dcp_sum <- sum(dDCP(x1=rep(0:15,16),
                 x2=rep(0:15,each=16), 0.5, 1.2))
 
@@ -424,7 +453,6 @@ dcp_test5 <- dDCP(x1=1, x2=0:1, 0.5, 1.2, rho=0.01) != dpois(1, lambda=0.5) * dp
 
 
 # Compare dDCP with the result from predict_goals using a fitted DC model.
-#
 
 # Only look athe first game.
 to_test_idx <- pred_goals_dc_df$team1 == 'Arsenal'
@@ -443,27 +471,19 @@ dcp_test6 <- all(abs(pred_goals_dc_df_subset$probability - pred_goals_dc_df_subs
 
 
 test_that('Dixon-Coles probability function', {
-
   expect_true(abs(dcp_sum - 1) < 0.00001)
-
   expect_true(dcp_test1)
   expect_true(all(dcp_test2))
-
   expect_true(dcp_test3)
   expect_true(all(dcp_test4))
-
   expect_true(all(dcp_test5))
-
   expect_true(all(dcp_test6))
-
-
-
 })
 
 
 
 
-
+# expg_from_probabilities ----
 context("expg_from_probabilities")
 
 
@@ -516,15 +536,13 @@ test_that("expg_from_probabilities", {
 })
 
 
-
+# Warnings ----
 context("Warnings")
-
 
 # Add a disconected fake data to test warning.
 england_2011_tmp <- bind_rows(england_2011,
                               data.frame(home=c('ff', 'aaa'), visitor=c('aaa', 'zzz'),
                                          hgoal=c(1,1), vgoal=c(1,1), stringsAsFactors = FALSE))
-
 
 test_that("Warning messages during model fitting", {
   expect_warning(goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
@@ -540,6 +558,7 @@ test_that("Warning messages during model fitting", {
 
 })
 
+# Match schedule functions ----
 context("Match schedule functions")
 
 
@@ -562,6 +581,33 @@ test_that("matches_last_xdays", {
   expect_true(sum(is.na(mlxd)) == length(gm_res$all_teams))
 
 })
+
+
+# p1x2 function ----
+context("p1x2 function")
+
+
+# Check that p1x2() gives same predictions as predict_result gives.
+p1x2_res_default <- p1x2(expg1 = pred_expg_default$expg1, expg2 = pred_expg_default$expg2,
+                         model = 'poisson')
+
+p1x2_res_dc <- p1x2(expg1 = pred_expg_dc$expg1, expg2 = pred_expg_dc$expg2,
+                    model = 'poisson', rho = gm_res_dc$parameters$rho)
+
+p1x2_res_nbin <- p1x2(expg1 = pred_expg_cmp$expg1, expg2 = pred_expg_cmp$expg2,
+                     model = 'negbin', dispersion = gm_res_nbin$parameters$dispersion)
+
+p1x2_res_cmp <- p1x2(expg1 = pred_expg_cmp$expg1, expg2 = pred_expg_cmp$expg2,
+                model = 'cmp', dispersion = gm_res_cmp$parameters$dispersion)
+
+
+test_that("matches_last_xdays", {
+  expect_true(all(abs(p1x2_res_default - pred_result_default) <= 0.0001))
+  expect_true(all(abs(p1x2_res_dc - pred_result_dc) <= 0.0001))
+  expect_true(all(abs(p1x2_res_cmp - p1x2_res_cmp) <= 0.0001))
+  expect_true(all(abs(p1x2_res_nbin - p1x2_res_nbin) <= 0.0001))
+})
+
 
 
 
