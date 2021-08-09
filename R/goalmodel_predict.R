@@ -8,7 +8,7 @@
 #' Make predictions using a fitted goalmodel.
 #'
 #' These functions predict expected goals, the probabiltieis for individual scorelines, or
-#' 1x2 results and over/under probabilities.
+#' 1x2 results and total over/under probabilities.
 #'
 #' @param model_fit A goalmodel object.
 #' @param team1 A character vector with team names, for which to make predictions of.
@@ -95,8 +95,8 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
 
     res <- data.frame(team1 = rep(team1, each=(maxgoal+1)^2),
                       team2 = rep(team2, each=(maxgoal+1)^2),
-                      goals1 = rep(0:maxgoal, maxgoal+1   ),
-                      goals2 = rep(0:maxgoal, each=maxgoal+1 ),
+                      goals1 = rep(0:maxgoal, maxgoal+1),
+                      goals2 = rep(0:maxgoal, each=maxgoal+1),
                       stringsAsFactors = FALSE)
 
     expg1_long <- expg$expg1[res$team1]
@@ -174,6 +174,95 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
   }
 
   return(res)
+
+}
+
+
+# TODO: Make predict_result() use this function.
+
+#' Compute 1x2 probabilities from expected goals.
+#' @export
+p1x2 <- function(expg1, expg2, model = 'poisson', dispersion=NULL, rho=NULL, uprx=25){
+
+  stopifnot(length(expg1) == length(expg2),
+            all(expg1 >= 0),
+            all(expg2 >= 0),
+            length(model) >= 1,
+            is.numeric(expg1), is.numeric(expg2),
+            model %in% c('poisson', 'negbin', 'cmp'))
+
+
+  nn <- length(expg1)
+
+  if (model %in% c('negbin', 'cmp') & is.null(dispersion)){
+    stop('Dispersion parameter not provided.')
+  }
+
+  if (!is.null(dispersion)){
+    stopifnot(length(dispersion) == 1 | length(dispersion) == nn,
+              is.numeric(dispersion),
+              all(dispersion > 0))
+
+    if (length(dispersion) == 1){
+      dispersion <- rep(dispersion, nn)
+    }
+
+    if (model == 'poisson'){
+      warning('Dispersion parameter will be ignored for model = "poisson".')
+    }
+
+  }
+
+  if (!is.null(rho)){
+    stopifnot(length(rho) == 1 | length(rho) == nn,
+              is.numeric(rho))
+
+    if (length(rho) == 1){
+      rho <- rep(rho, nn)
+    }
+  }
+
+  # Initialize vectors to store the 1x2 probabilities in.
+  probd <- numeric(nn)
+  prob1 <- numeric(nn)
+  prob2 <- numeric(nn)
+
+  for (ii in 1:nn){
+
+    # Compute the matrix of goal probabilities, depending on the model.
+    # This section is copypasta from predict_goals().
+    if (model == 'poisson'){
+      scoremat <- stats::dpois(0:uprx, expg1[ii]) %*% t(stats::dpois(0:uprx, expg2[ii]))
+    } else if (model == 'negbin'){
+      scoremat <- stats::dnbinom(0:uprx, mu = expg1[ii], size = 1 / dispersion[ii]) %*%
+        t(stats::dnbinom(0:uprx, mu = expg2[ii], size = 1 / dispersion[ii]))
+    } else if (model == 'cmp'){
+      # Convert the expected goals to CMP-lambda.
+      ll1 <- lambdaCMP(mu = expg1[ii], upsilon = dispersion[ii], method = 'fast')
+      ll2 <- lambdaCMP(mu = expg2[ii], upsilon = dispersion[ii], method = 'fast')
+
+      scoremat <- dCMP(0:uprx, lambda = ll1, upsilon = dispersion[ii]) %*%
+        t(dCMP(0:uprx, lambda = ll2, upsilon = dispersion[ii]))
+    }
+
+    # Dixon-Coles adjustemt.
+    if (!is.null(rho)){
+      tau_matrix <- matrix(tau(goals1 = c(0,1,0,1), goals2 = c(0,0,1,1),
+                               lambda1 = rep(expg1[ii], 4), lambda2 = rep(expg2[ii], 4),
+                               rho = rho[ii]),
+                           nrow=2)
+
+      scoremat[1:2, 1:2] <- scoremat[1:2, 1:2] * tau_matrix
+    }
+
+    # Compute 1x2 probabilities.
+    probd[ii] <- sum(diag(scoremat))
+    prob1[ii] <- sum(scoremat[lower.tri(scoremat)])
+    prob2[ii] <- 1 - (probd[ii] + prob1[ii])
+
+  }
+
+  cbind(prob1, probd, prob2)
 
 }
 

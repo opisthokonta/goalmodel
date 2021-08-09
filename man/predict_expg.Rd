@@ -63,5 +63,5 @@ Make predictions using a fitted goalmodel.
 }
 \details{
 These functions predict expected goals, the probabiltieis for individual scorelines, or
-1x2 results and over/under probabilities.
+1x2 results and total over/under probabilities.
 }
