@@ -207,6 +207,55 @@ expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 
 
 
+#' Estimate the expected goals from over/under probabilities.
+#' From a probability of goals scored being below a given number (like 2.5), compute
+#' the expected number of goals scored, assuming an underlying Poisson distribution.
+#'
+#' @param probability Vector of probabilities for number of goals scored being less (or greater) than ou.
+#' @param ou The limit the probability reffers to. Default is 2.5.
+#' @param under Logical indicating whether the probabilities are for 'under' (TRUE, default) or 'over' (FALSE).
+#' @param upperlim Numeric giving the upper limit for expected goals the estimating procedure will consider.
+#'
+#' @example
+#' expg_from_ou(probability = 0.62, ou = 2.5, under = TRUE)
+#'
+#'
+#' @export
+expg_from_ou <- function(probability, ou=2.5, under = TRUE, upperlim = 10){
+
+  stopifnot(all(probability >= 0),
+            all(probability <= 1),
+            length(ou) == 1,
+            ou > 0,
+            is.logical(under),
+            length(under) == 1)
+
+  # If probabilities are given as 'over', convert them to 'under'.
+  if (!under){
+    probability <- 1 - probability
+  }
+
+  obj <- function(expg, prob, under){
+    ppois(floor(under), lambda=expg) - prob
+  }
+
+  expg <- numeric(length(probability))
+  for (ii in 1:length(probability)){
+
+    res <- uniroot(f = obj,
+                   interval = c(0.001, upperlim),
+                   prob = probability[ii],
+                   under = ou)
+
+    expg[ii] <- res$root
+  }
+
+  return(expg)
+
+}
+
+
+
 #' Time since last match
 #'
 #' This function calculates the number of days since the two teams
@@ -264,7 +313,6 @@ days_since_last_match <- function(team1, team2, dates, first_val = NA){
   return(res)
 
 }
-
 
 
 #' Number of matches played in the preceding period
