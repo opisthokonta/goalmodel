@@ -93,6 +93,7 @@ context("Model fitting - Gaussian")
 gm_res_gaussian <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
                              team1 = england_2011$home, team2=england_2011$visitor, model='gaussian')
 
+
 test_that("Fitting Gaussian model", {
   expect_equal(class(gm_res_gaussian), 'goalmodel')
   expect_equal(gm_res_gaussian$parameters$dispersion, NULL)
@@ -404,6 +405,25 @@ test_that("Predict goals", {
 })
 
 
+pred_ou_default <- predict_ou(gm_res, team1=to_predict1, team2=to_predict2)
+pred_ou_dc <- predict_ou(gm_res_dc, team1=to_predict1, team2=to_predict2)
+
+pred_ou_default_df <- predict_ou(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+pred_ou_dc_df <- predict_ou(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+
+test_that("Predict ou", {
+  pred_ou_default
+
+  expect_true(is.list(pred_ou_default))
+  expect_true(is.list(pred_ou_dc))
+
+  expect_true(all(abs(pred_ou_default$prob_under + pred_ou_default$prob_over - 1) <= 0.0001))
+  expect_true(all(abs(pred_ou_dc$prob_under + pred_ou_dc$prob_over - 1) <= 0.0001))
+
+  expect_equal(is.data.frame(pred_ou_default_df), TRUE)
+  expect_equal(is.data.frame(pred_ou_dc_df), TRUE)
+
+})
 
 # DC weight function----
 context("DC weights")
