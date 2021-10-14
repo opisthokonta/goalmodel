@@ -1,3 +1,10 @@
+# Version 0.4.4
+ 
+ * New function expg_from_ou().
+ * New function p1x2().
+ * Bugfix: predict_goals() with return_df=TRUE did not work properly when the team arguments were factors.
+
+
 
 # Version 0.4.3
 
