@@ -56,6 +56,9 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
   stopifnot(length(team1) == length(team2),
             is.logical(return_df))
 
+  team1 <- as.character(team1)
+  team2 <- as.character(team2)
+
 
   if (is.null(lwrx)){
     lwrx <- 25
@@ -291,7 +294,8 @@ predict_result <- function(model_fit, team1, team2,
   if (return_df){
     out <- data.frame(team1 = team1, team2 = team2,
                       p1 = prob1, pd = probd, p2 = prob2,
-                      stringsAsFactors = FALSE)
+                      stringsAsFactors = FALSE,
+                      row.names = NULL)
 
   } else {
     out <- matrix(c(prob1, probd, prob2), ncol=3, nrow=length(team1))
@@ -340,7 +344,8 @@ predict_ou <- function(model_fit, team1, team2,
   if (return_df){
     out <- data.frame(team1 = team1, team2 = team2,
                       prob_under = prob_under, prob_over = prob_over,
-                      stringsAsFactors = FALSE)
+                      stringsAsFactors = FALSE,
+                      row.names = NULL)
   } else {
     names(prob_under) <- NULL
     names(prob_over) <- NULL
