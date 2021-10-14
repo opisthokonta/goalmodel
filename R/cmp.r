@@ -97,6 +97,7 @@ lambdaCMP <- function(mu, upsilon, method='sum', error = 0.01){
 #' argument is lambda (default) or mu.
 #' @param method character; either 'fast' or 'sum'. Passed on to the lambdaCMP function
 #' if param_type = 'mu'.
+#' @param weights Numeric vector of weigths that determine the influence of each data point on the final parameter estimate.
 #' @param lower the lower bound for upsilon
 #' @param upper the upper bound for upsilon
 #'

@@ -25,6 +25,8 @@ argument is lambda (default) or mu.}
 \item{method}{character; either 'fast' or 'sum'. Passed on to the lambdaCMP function
 if param_type = 'mu'.}
 
+\item{weights}{Numeric vector of weigths that determine the influence of each data point on the final parameter estimate.}
+
 \item{lower}{the lower bound for upsilon}
 
 \item{upper}{the upper bound for upsilon}

@@ -216,10 +216,6 @@ expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 #' @param under Logical indicating whether the probabilities are for 'under' (TRUE, default) or 'over' (FALSE).
 #' @param upperlim Numeric giving the upper limit for expected goals the estimating procedure will consider.
 #'
-#' @example
-#' expg_from_ou(probability = 0.62, ou = 2.5, under = TRUE)
-#'
-#'
 #' @export
 expg_from_ou <- function(probability, ou=2.5, under = TRUE, upperlim = 10){
 
@@ -236,16 +232,16 @@ expg_from_ou <- function(probability, ou=2.5, under = TRUE, upperlim = 10){
   }
 
   obj <- function(expg, prob, under){
-    ppois(floor(under), lambda=expg) - prob
+    stats::ppois(floor(under), lambda=expg) - prob
   }
 
   expg <- numeric(length(probability))
   for (ii in 1:length(probability)){
 
-    res <- uniroot(f = obj,
-                   interval = c(0.001, upperlim),
-                   prob = probability[ii],
-                   under = ou)
+    res <- stats::uniroot(f = obj,
+                         interval = c(0.001, upperlim),
+                         prob = probability[ii],
+                         under = ou)
 
     expg[ii] <- res$root
   }

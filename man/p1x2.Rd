@@ -6,6 +6,19 @@
 \usage{
 p1x2(expg1, expg2, model = "poisson", dispersion = NULL, rho = NULL, uprx = 25)
 }
+\arguments{
+\item{expg1}{Non-negative numeric. The expected number of goals. .}
+
+\item{expg2}{Non-negative numeric. The expected number of goals. .}
+
+\item{model}{String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), or Conway-Maxwell-Poisson ('cmp') model.}
+
+\item{dispersion}{Non-negative numeric. The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.}
+
+\item{rho}{Numeric. The Dixon-Coles adjustment.}
+
+\item{uprx}{Numeric. The upper limit for evaluating the underlying distributions.}
+}
 \description{
 Compute 1x2 probabilities from expected goals.
 }

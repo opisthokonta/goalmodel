@@ -184,6 +184,14 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
 # TODO: Make predict_result() use this function.
 
 #' Compute 1x2 probabilities from expected goals.
+#'
+#' @param expg1 Non-negative numeric. The expected number of goals. .
+#' @param expg2 Non-negative numeric. The expected number of goals. .
+#' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), or Conway-Maxwell-Poisson ('cmp') model.
+#' @param dispersion Non-negative numeric. The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
+#' @param rho Numeric. The Dixon-Coles adjustment.
+#' @param uprx Numeric. The upper limit for evaluating the underlying distributions.
+#'
 #' @export
 p1x2 <- function(expg1, expg2, model = 'poisson', dispersion=NULL, rho=NULL, uprx=25){
 

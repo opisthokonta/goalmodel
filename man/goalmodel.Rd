@@ -78,7 +78,7 @@ The following parameter components are optional, and depends on what kind of mod
 \item rho - If dc=TRUE, an unnamd length 1 numeric with the Dixon-Coles adjustment.
 \item gamma - If rs=TRUE, an unnamd length 1 numeric with the Rue-Salvesen adjustment.
 \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
-\item dispersion - The dispersion paramter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
+\item dispersion - The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
 \item sigma - The standard deviation in a Gaussian model.
 }
 }

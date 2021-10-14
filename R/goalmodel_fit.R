@@ -33,7 +33,7 @@ tau <- function(goals1, goals2, lambda1, lambda2, rho){
 # Compute the expected value in goalmodel.
 #
 # Compute the expected value for the poisson and negative binomial
-# from a list of paramteres and data. This function is used many
+# from a list of parameteres and data. This function is used many
 # places, like when making predictions and in the negloklik function.
 #
 lambda_pred <- function(plist, team1, team2, x1, x2){
@@ -525,7 +525,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 #' \item rho - If dc=TRUE, an unnamd length 1 numeric with the Dixon-Coles adjustment.
 #' \item gamma - If rs=TRUE, an unnamd length 1 numeric with the Rue-Salvesen adjustment.
 #' \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
-#' \item dispersion - The dispersion paramter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
+#' \item dispersion - The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
 #' \item sigma - The standard deviation in a Gaussian model.
 #' }
 #'
@@ -870,7 +870,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
     all_teams <- sort(all_param_teams)
   }
 
-  # sort the attack and defence paramters alphabetically
+  # sort the attack and defence parameters alphabetically
   parameter_list$defense <- parameter_list$defense[order(names(parameter_list$defense))]
   parameter_list$attack <- parameter_list$attack[order(names(parameter_list$attack))]
 
