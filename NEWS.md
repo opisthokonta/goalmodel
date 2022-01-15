@@ -9,7 +9,7 @@
 # Version 0.4.3
 
   * Pseudo R-squared is now computed for fitted CMP models.
-  * Can now do weighted esimtation of the CMP dispersion parameter with the upsilon.ml() function.
+  * Can now do weighted estimation of the CMP dispersion parameter with the upsilon.ml() function.
   * New argument maxgoal in predict_goals()
   * predict_expg() does not return a data.frame with row.names if return_df=TRUE.
 
