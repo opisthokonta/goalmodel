@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // CMP_normalizing_constant
 Rcpp::NumericVector CMP_normalizing_constant(Rcpp::NumericVector& lambda, Rcpp::NumericVector& upsilon, double error);
 RcppExport SEXP _goalmodel_CMP_normalizing_constant(SEXP lambdaSEXP, SEXP upsilonSEXP, SEXP errorSEXP) {

@@ -1,4 +1,4 @@
-# Version 0.4.4
+# Version 0.5
  
  * New function expg_from_ou().
  * New function p1x2().
