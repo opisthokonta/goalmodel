@@ -19,6 +19,9 @@ p1x2(expg1, expg2, model = "poisson", dispersion = NULL, rho = NULL, uprx = 25)
 
 \item{uprx}{Numeric. The upper limit for evaluating the underlying distributions.}
 }
+\value{
+A matrix with 3 columns with one row for each pair of expected goals.
+}
 \description{
 Compute 1x2 probabilities from expected goals.
 }

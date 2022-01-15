@@ -126,7 +126,7 @@ weights_dc <- function(dates, xi=0, currentDate=NULL){
 
 
 
-# Internal function for computnig the squared error for estimating
+# Internal function for computing the squared error for estimating
 # the expected goals from outcome probabilities.
 expg_prob_sq_error <- function(pars, trgt_probs, rho, uprx){
 
@@ -212,9 +212,12 @@ expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 #' the expected number of goals scored, assuming an underlying Poisson distribution.
 #'
 #' @param probability Vector of probabilities for number of goals scored being less (or greater) than ou.
-#' @param ou The limit the probability reffers to. Default is 2.5.
+#' @param ou The limit the probability refers to. Default is 2.5.
 #' @param under Logical indicating whether the probabilities are for 'under' (TRUE, default) or 'over' (FALSE).
 #' @param upperlim Numeric giving the upper limit for expected goals the estimating procedure will consider.
+#'
+#'@return
+#' A numeric vector with expected number of goals.
 #'
 #' @export
 expg_from_ou <- function(probability, ou=2.5, under = TRUE, upperlim = 10){

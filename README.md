@@ -1,50 +1,65 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-The goalmodel package let you build prediction models for the number of goals scored in sport games. The models are primarily aimed at modelling and predicting football (soccer) scores, but could also be applicable for similar sports, such as hockey and handball.
 
-If you find this package useful, please consider supporting the development at <https://ko-fi.com/opisthokonta>
+The goalmodel package let you build prediction models for the number of
+goals scored in sport games. The models are primarily aimed at modelling
+and predicting football (soccer) scores, but could also be applicable
+for similar sports, such as hockey and handball.
 
-[![ko-fi banner and link](README_files/SupportMe_red@2x_scaled.png)](https://ko-fi.com/opisthokonta)
+If you find this package useful, please consider supporting the
+development at <https://ko-fi.com/opisthokonta>
 
-Installation
-============
+[![ko-fi banner and
+link](README_files/SupportMe_red@2x_scaled.png)](https://ko-fi.com/opisthokonta)
+
+# Installation
 
 ``` r
 install.packages("devtools")
 devtools::install_github("opisthokonta/goalmodel")
 ```
 
-Whats new
-=========
+# Whats new
 
-### Version 0.4.4
+### Version 0.5
 
--   New function expg\_from\_ou().
+-   New function expg_from_ou().
 -   New function p1x2(), to compute
--   Bugfix: predict\_goals() with return\_df=TRUE did not work properly when the team arguments were factors.
+-   Bugfix: predict_goals() with return_df=TRUE did not work properly
+    when the team arguments were factors.
 
 See NEWS.md for changes for complete version history.
 
-The default model
-=================
+# The default model
 
-The goalmodel package models the goal scoring intensity so that it is a function of the two opposing teams attack and defense ratings. Let λ<sub>1</sub> and λ<sub>2</sub>) be the goal scoring intensities for the two sides. The default model in the goalmodel package then models these as
+The goalmodel package models the goal scoring intensity so that it is a
+function of the two opposing teams attack and defense ratings. Let
+λ<sub>1</sub> and λ<sub>2</sub>) be the goal scoring intensities for the
+two sides. The default model in the goalmodel package then models these
+as
 
 log(λ<sub>1</sub>) = μ + hfa + attack<sub>1</sub> − defense<sub>2</sub>
 
 log(λ<sub>2</sub>) = μ + attack<sub>2</sub> − defense<sub>1</sub>
 
-where μ is the intercept (approximately the average number of goals scored) and hfa is the home field advantage given to team 1. By default the number of goals scored, Y<sub>1</sub> and Y<sub>2</sub> are distributed as
+where μ is the intercept (approximately the average number of goals
+scored) and hfa is the home field advantage given to team 1. By default
+the number of goals scored, Y<sub>1</sub> and Y<sub>2</sub> are
+distributed as
 
 Y<sub>1</sub> ∼ Poisson(λ<sub>1</sub>)
 
 Y<sub>2</sub> ∼ Poisson(λ<sub>2</sub>)
 
-The default model can be modified in numerous ways as detailed in this vignette.
+The default model can be modified in numerous ways as detailed in this
+vignette.
 
-Fitting the default model
--------------------------
+## Fitting the default model
 
-Models are fitted with the goalmodel function. The minimum required input are vectors containing the number of goals scored and the names of the teams. Here I use data from the excellent [engsoccerdata](https://cran.r-project.org/web/packages/engsoccerdata/) package.
+Models are fitted with the goalmodel function. The minimum required
+input are vectors containing the number of goals scored and the names of
+the teams. Here I use data from the excellent
+[engsoccerdata](https://cran.r-project.org/web/packages/engsoccerdata/)
+package.
 
 ``` r
 library(goalmodel)
@@ -106,10 +121,14 @@ summary(gm_res)
     ## Intercept                  0.13 
     ## Home field advantage       0.27
 
-The Dixon-Coles model
-=====================
+# The Dixon-Coles model
 
-In a paper by Dixon and Coles (1997) they introduce a model that extend the defaul model that modifies the probabilities for low scores, where each team scores at most 1 goal each. The amount of adjustment is determined by the parameter ρ (rho), which can be estimated from the data. The Dixon-Coles model can be fitted by setting the dc argument to TRUE.
+In a paper by Dixon and Coles (1997) they introduce a model that extend
+the defaul model that modifies the probabilities for low scores, where
+each team scores at most 1 goal each. The amount of adjustment is
+determined by the parameter ρ (rho), which can be estimated from the
+data. The Dixon-Coles model can be fitted by setting the dc argument to
+TRUE.
 
 ``` r
 # Fit the Dixon-Coles model.
@@ -121,7 +140,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.12 seconds
+    ## Model sucsessfully fitted in 0.85 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -160,12 +179,13 @@ summary(gm_res_dc)
     ## Home field advantage       0.27 
     ## Dixon-Coles adj. (rho)    -0.13
 
-Notice that the estimated ρ parameter is listed together with the other parameters.
+Notice that the estimated ρ parameter is listed together with the other
+parameters.
 
-The Rue-Salvesen adjustment
-===========================
+# The Rue-Salvesen adjustment
 
-In a paper by Rue and Salvesen (2001) they introduce an adjustment to the goals scoring intesities λ<sub>1</sub> and λ<sub>2</sub>:
+In a paper by Rue and Salvesen (2001) they introduce an adjustment to
+the goals scoring intesities λ<sub>1</sub> and λ<sub>2</sub>:
 
 log(λ<sub>1</sub><sup>adj</sup>) = log(λ<sub>1</sub>) − γΔ<sub>1,2</sub>
 
@@ -173,9 +193,11 @@ log(λ<sub>2</sub><sup>adj</sup>) = log(λ<sub>2</sub>) + γΔ<sub>1,2</sub>
 
 where
 
-Δ<sub>1,2</sub> = (attack<sub>1</sub>+defense<sub>1</sub>−attack<sub>2</sub>−defense<sub>2</sub>)/2
+Δ<sub>1,2</sub> =
+(attack<sub>1</sub>+defense<sub>1</sub>−attack<sub>2</sub>−defense<sub>2</sub>)/2
 
-and γ is a parameter that modifies the amount of adjustment. This model can be fitted by setting the rs argument to TRUE.
+and γ is a parameter that modifies the amount of adjustment. This model
+can be fitted by setting the rs argument to TRUE.
 
 ``` r
 # Fit the model with the Rue-Salvesen adjustment.
@@ -187,7 +209,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.63 seconds
+    ## Model sucsessfully fitted in 0.52 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -226,12 +248,13 @@ summary(gm_res_rs)
     ## Home field advantage       0.27 
     ## Rue-Salvesen adj. (gamma)  0.02
 
-Making predictions
-==================
+# Making predictions
 
-There is little use in fitting the model without making predictions. Several functions are provided that make different types of predictions.
+There is little use in fitting the model without making predictions.
+Several functions are provided that make different types of predictions.
 
-We can get the expected goals with the predict\_expg function. Here the return\_df is set to TRUE, which returns a convenient data.frame.
+We can get the expected goals with the predict_expg function. Here the
+return_df is set to TRUE, which returns a convenient data.frame.
 
 ``` r
 to_predict1 <- c('Arsenal', 'Manchester United', 'Bolton Wanderers')
@@ -245,7 +268,8 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
     ## 2 Manchester United   Chelsea 2.291612 0.9288743
     ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
 
-We can also get the probabilities of the final outcome (team1 win, draw, team2 win) with the predict\_result function.
+We can also get the probabilities of the final outcome (team1 win, draw,
+team2 win) with the predict_result function.
 
 ``` r
 predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
@@ -256,14 +280,22 @@ predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE
     ## 2 Manchester United   Chelsea 0.6685366 0.2051625 0.1263009
     ## 3  Bolton Wanderers Liverpool 0.2524546 0.2903231 0.4572222
 
-Other functions are predict\_goals which return matrices of the probabilities of each scoreline, and predict\_ou for getting the probabilities for over/under total scores.
+Other functions are predict_goals which return matrices of the
+probabilities of each scoreline, and predict_ou for getting the
+probabilities for over/under total scores.
 
-Weights
-=======
+# Weights
 
-For predicton purposes it is a good idea to weight the influence of each match on the estimates so that matches far back in time have less influence than the more recent ones. The Dixon-Coles paper describe a function that can help set the weights. This function is implemented in the weights\_dc function. The degree more recent matches are weighted relative to earlier ones are determined by the parameter xi. Good values of xi is usually somewhere between 0.001 and 0.003
+For predicton purposes it is a good idea to weight the influence of each
+match on the estimates so that matches far back in time have less
+influence than the more recent ones. The Dixon-Coles paper describe a
+function that can help set the weights. This function is implemented in
+the weights_dc function. The degree more recent matches are weighted
+relative to earlier ones are determined by the parameter xi. Good values
+of xi is usually somewhere between 0.001 and 0.003
 
-Here we calculate the weights, plot them, and fit the default model with the weights.
+Here we calculate the weights, plot them, and fit the default model with
+the weights.
 
 ``` r
 my_weights <- weights_dc(england_2011$Date, xi=0.0019)
@@ -285,12 +317,20 @@ gm_res_w <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
                      weights = my_weights)
 ```
 
-Additional covariates
-=====================
+# Additional covariates
 
-It is possible to use additional variables to predict the outcome. One particular useful thing this can be used for is to have greater control of the home field advantage. For example if you use data from several leagues you might want to have a separate home field advantage for each league, or be able to turn of the advantage for games played on neutral ground.
+It is possible to use additional variables to predict the outcome. One
+particular useful thing this can be used for is to have greater control
+of the home field advantage. For example if you use data from several
+leagues you might want to have a separate home field advantage for each
+league, or be able to turn of the advantage for games played on neutral
+ground.
 
-Here is how to specify the default model with the home field advantage specified as an additional covariate. Notice how the hfa argument is set to FALSE, so that the default home field advantage factor is droped. Also notice that only covariates for the first team is given, implicitly setting all values of this covariate to 0 for team2.
+Here is how to specify the default model with the home field advantage
+specified as an additional covariate. Notice how the hfa argument is set
+to FALSE, so that the default home field advantage factor is droped.
+Also notice that only covariates for the first team is given, implicitly
+setting all values of this covariate to 0 for team2.
 
 ``` r
 # Create a n-by-1 matrix, containing only 1's, to indicate that all 
@@ -312,15 +352,26 @@ gm_res_hfa$parameters$beta
     ##       hfa 
     ## 0.2680093
 
-Alternatives to the Poisson model
-=================================
+# Alternatives to the Poisson model
 
-By the default the Poisson distribution is used to model the goals. The Poisson distribution has a lot of nice properties, but also some limitations. For instance there is only one parameter that describes both the expected value (the average) and the variance. It is also limited to integer number of goals.
+By the default the Poisson distribution is used to model the goals. The
+Poisson distribution has a lot of nice properties, but also some
+limitations. For instance there is only one parameter that describes
+both the expected value (the average) and the variance. It is also
+limited to integer number of goals.
 
-The Negative Binomial model
----------------------------
+## The Negative Binomial model
 
-The Negative Binomial (NB) model is a more flexible model that allows higher variance than the Poisson model. The NB model introduces another parameter called the "dispersion" parameter. This parameter has to be positive, and the greater the value of this parameter, the more variance there is relative to the Poisson model with the same *λ*. When the variance is greater than the expectation, it is referred to as overdispersion. When the parameter is close to zero, it the result is approximately the Poisson. The NB model can be fitted by setting the "model" argument to 'negbin'. In this example the dispersion parameter is close to zero.
+The Negative Binomial (NB) model is a more flexible model that allows
+higher variance than the Poisson model. The NB model introduces another
+parameter called the “dispersion” parameter. This parameter has to be
+positive, and the greater the value of this parameter, the more variance
+there is relative to the Poisson model with the same *λ*. When the
+variance is greater than the expectation, it is referred to as
+overdispersion. When the parameter is close to zero, it the result is
+approximately the Poisson. The NB model can be fitted by setting the
+“model” argument to ‘negbin’. In this example the dispersion parameter
+is close to zero.
 
 ``` r
 # Fit the model with overdispersion.
@@ -335,16 +386,44 @@ gm_res_nb$parameters$dispersion
 
     ## [1] 4.517136e-05
 
-The Conway-Maxwell-Poisson model
---------------------------------
+## The Conway-Maxwell-Poisson model
 
-While the Negative Binomial model is more flexible than the Poisson model in that it can model excess variance, the Conway-Maxwell-Poisson (CMP) model is even more flexible. The CMP can be both over-dispersed and under-dispersed. The dispersion parameter controlling the amount of dispersion is called *υ* (upsilon), and behaves a bit different than the dispersion parameter in the Negative Binomial. When *υ* = 1 the model becomes the Poisson model. If *υ* is greater than 1 the variance is less than the expectation, and we have under-dispersion. If *υ* is between 0 and 1, there is over-dipsersion.
+While the Negative Binomial model is more flexible than the Poisson
+model in that it can model excess variance, the Conway-Maxwell-Poisson
+(CMP) model is even more flexible. The CMP can be both over-dispersed
+and under-dispersed. The dispersion parameter controlling the amount of
+dispersion is called *υ* (upsilon), and behaves a bit different than the
+dispersion parameter in the Negative Binomial. When *υ* = 1 the model
+becomes the Poisson model. If *υ* is greater than 1 the variance is less
+than the expectation, and we have under-dispersion. If *υ* is between 0
+and 1, there is over-dipsersion.
 
-Unfortunately, the CMP distribution is a bit difficult to work with for several reasons. It is not built-in in R, so I have implemented some of the relevant distribution functions (called dCMP and pCMP). It also has a normalizing constant that is a bit difficult to compute, and must be approximated. The distribution functions have an argument called 'error' that determines the amount of approximation, and has a default that is precise enough for our needs.
+Unfortunately, the CMP distribution is a bit difficult to work with for
+several reasons. It is not built-in in R, so I have implemented some of
+the relevant distribution functions (called dCMP and pCMP). It also has
+a normalizing constant that is a bit difficult to compute, and must be
+approximated. The distribution functions have an argument called ‘error’
+that determines the amount of approximation, and has a default that is
+precise enough for our needs.
 
-The perhaps most confusing thing with the CMP model is that it has a parameter called *λ*, and this parameter does NOT behave like the *λ* in the Poisson or NB models. In those models the lambda is the same as the expectation, but this is not the case for the CMP. To make matters worse, there is no simple forumla for finding the expectation for a given set of values of *λ* and *υ*, although an approximate formula exists. Therefore I have included two functions to compute the expectation (eCMP) and another to find the *λ* for a given set of values for the expectation and dispersion (lambdaCMP).
+The perhaps most confusing thing with the CMP model is that it has a
+parameter called *λ*, and this parameter does NOT behave like the *λ* in
+the Poisson or NB models. In those models the lambda is the same as the
+expectation, but this is not the case for the CMP. To make matters
+worse, there is no simple forumla for finding the expectation for a
+given set of values of *λ* and *υ*, although an approximate formula
+exists. Therefore I have included two functions to compute the
+expectation (eCMP) and another to find the *λ* for a given set of values
+for the expectation and dispersion (lambdaCMP).
 
-To fit and use a model with the CMP distribution is easy, you can just set model == 'cmp' in the goalmodel function. However, because of all the complications with this model, estimating the parameters can be really slow. Under the hood, I have tried to speed things up by using approximations where I could, but it is still slow. I therefore recomend using two-step estimation to fit this model. If you fit this model, and see that there is overdispersion (dispersion &lt; 1), it can be a good idea to use the NB model instead.
+To fit and use a model with the CMP distribution is easy, you can just
+set model == ‘cmp’ in the goalmodel function. However, because of all
+the complications with this model, estimating the parameters can be
+really slow. Under the hood, I have tried to speed things up by using
+approximations where I could, but it is still slow. I therefore recomend
+using two-step estimation to fit this model. If you fit this model, and
+see that there is overdispersion (dispersion \< 1), it can be a good
+idea to use the NB model instead.
 
 ``` r
 # Fit the CMP model, with the attack and defence parameters fixed to the values in the default model.
@@ -358,17 +437,28 @@ gm_res_cmp_2s$parameters$dispersion
 
     ## [1] 1.122462
 
-The Gaussian model
-------------------
+## The Gaussian model
 
-It is also possible to use model = 'gaussian' to fit models using the Gaussian (or normal) distribution. This option is intended to be used when the scores are decimal numbers. This could be useful if instead of actual goals scored, you wanted to fit a model to expected goals. You can't combine this with the Dixon-Coles adjustment, except perhaps using a two step procedure. If you use a Gaussian model to make predictions, the Poisson distribution will be used, and a warning will be given.
+It is also possible to use model = ‘gaussian’ to fit models using the
+Gaussian (or normal) distribution. This option is intended to be used
+when the scores are decimal numbers. This could be useful if instead of
+actual goals scored, you wanted to fit a model to expected goals. You
+can’t combine this with the Dixon-Coles adjustment, except perhaps using
+a two step procedure. If you use a Gaussian model to make predictions,
+the Poisson distribution will be used, and a warning will be given.
 
-Fixed parameters - Two step estimation.
-=======================================
+# Fixed parameters - Two step estimation.
 
-If you want to, you can set some of the parameters to a fixed value that is kept constant during model fitting. In other words, you don't estimate the fixed parameters from the data, but set them manually beforehand and all other parameters are estimated with this in mind.
+If you want to, you can set some of the parameters to a fixed value that
+is kept constant during model fitting. In other words, you don’t
+estimate the fixed parameters from the data, but set them manually
+beforehand and all other parameters are estimated with this in mind.
 
-This feature can be useful for doing two-step estimation. Sometimes the model fitting can be unstable, especially when the model is complicated. It can then be a good idea to first fit a simpler model, like the default model, and then with the parameters from the simpler model kept constant, estimate the rest of the parameters in a second step.
+This feature can be useful for doing two-step estimation. Sometimes the
+model fitting can be unstable, especially when the model is complicated.
+It can then be a good idea to first fit a simpler model, like the
+default model, and then with the parameters from the simpler model kept
+constant, estimate the rest of the parameters in a second step.
 
 Here is an example of two-step fitting of the Dixon-Coles model.
 
@@ -390,12 +480,25 @@ gm_res_dc$parameters$rho
 
     ## [1] -0.1336961
 
-Offset - Varying playing time
-=============================
+# Offset - Varying playing time
 
-Sometimes the playing time can be extended to extra time. In football this usually happens when there is a draw in a knock-out tournament, where an additional 30 minutes is added. To handle this, we must add what is called an offset to the model. You can read more about the details on [wikipedia](https://en.wikipedia.org/wiki/Poisson_regression#%22Exposure%22_and_offset).
+Sometimes the playing time can be extended to extra time. In football
+this usually happens when there is a draw in a knock-out tournament,
+where an additional 30 minutes is added. To handle this, we must add
+what is called an offset to the model. You can read more about the
+details on
+[wikipedia](https://en.wikipedia.org/wiki/Poisson_regression#%22Exposure%22_and_offset).
 
-There is no offset option in the goalmodel package, but we can add it as an extra covariate, and fix the parameter for that covariate to be 1. In the example below we add a game from the 2011-12 FA Cup to the data set which was extended to extra time. Then we create the offset variable and fit the model with the fixed parameter. Note that the offset variable must be log-transformed. In this example, the extra game that is added is the only game in the data set where Middlesbrough is playing, so the estimates will be a bit unstable. Also note that the number of minutes played is divided by 90, the ordinary playing time, otherwise the model fitting tend to get unstable.
+There is no offset option in the goalmodel package, but we can add it as
+an extra covariate, and fix the parameter for that covariate to be 1. In
+the example below we add a game from the 2011-12 FA Cup to the data set
+which was extended to extra time. Then we create the offset variable and
+fit the model with the fixed parameter. Note that the offset variable
+must be log-transformed. In this example, the extra game that is added
+is the only game in the data set where Middlesbrough is playing, so the
+estimates will be a bit unstable. Also note that the number of minutes
+played is divided by 90, the ordinary playing time, otherwise the model
+fitting tend to get unstable.
 
 ``` r
 # Get matches from the FA cup that was extended to extra time.
@@ -409,8 +512,8 @@ facup %>%
 facup_2011
 ```
 
-    ##         Date          home    visitor hgoal vgoal aet
-    ## 1 2012-02-08 Middlesbrough Sunderland     1     2 yes
+    ##             Date          home    visitor hgoal vgoal aet
+    ## 16005 2012-02-08 Middlesbrough Sunderland     1     2 yes
 
 ``` r
 # Merge the additional game with the origianl data frame.
@@ -455,7 +558,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 1.12 seconds
+    ## Model sucsessfully fitted in 0.93 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -495,12 +598,24 @@ summary(gm_res_offset)
     ## Home field advantage       0.27 
     ## Offset                     1.00
 
-Modifying parameters
-====================
+# Modifying parameters
 
-In addition to fixing parameters before the model is fit, you can also manually set the parameters after the model is fitted. This can be useful if you believe the attack or defence parameters given by the model is inacurate because you have some additional information that is not captured in the data.
+In addition to fixing parameters before the model is fit, you can also
+manually set the parameters after the model is fitted. This can be
+useful if you believe the attack or defence parameters given by the
+model is inacurate because you have some additional information that is
+not captured in the data.
 
-Modifying the parameters can also be useful for the same reasons as you might want to fit the model in two (or more) steps. For intance, if you look at the log-likelihood of the default model, and the model with the Rue-Salvesen adjustment, you will notice that they are almost identical. This is probably due to the model being nearly unidentifiable. That does not neccecarily mean that the Rue-Salvesen adjustment does not improve prediction, it might mean that it is hard to estimate the amount of adjustment based on the available data. In the paper by Rue & Salvesen they find that setting γ to 0.1 is a good choice. Here is how this can be done:
+Modifying the parameters can also be useful for the same reasons as you
+might want to fit the model in two (or more) steps. For intance, if you
+look at the log-likelihood of the default model, and the model with the
+Rue-Salvesen adjustment, you will notice that they are almost identical.
+This is probably due to the model being nearly unidentifiable. That does
+not neccecarily mean that the Rue-Salvesen adjustment does not improve
+prediction, it might mean that it is hard to estimate the amount of
+adjustment based on the available data. In the paper by Rue & Salvesen
+they find that setting γ to 0.1 is a good choice. Here is how this can
+be done:
 
 ``` r
 # Copy the default model.
@@ -527,17 +642,23 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
     ## 2 Manchester United   Chelsea 0.6539250 0.1917532 0.1543218
     ## 3  Bolton Wanderers Liverpool 0.2780789 0.2603511 0.4615700
 
-Miscalaneous
-============
+# Miscalaneous
 
-Reverse engineering expected goals
-----------------------------------
+## Reverse engineering expected goals
 
-The function predict\_result that's demonstrated above uses the underlying statistical model and the expected goals from fitted goalmodel to compute the probabilities for win-draw-lose. The function expg\_from\_probabilities can be used to reverse this procedure, going from probabilities to the underlying expected goals.
+The function predict_result that’s demonstrated above uses the
+underlying statistical model and the expected goals from fitted
+goalmodel to compute the probabilities for win-draw-lose. The function
+expg_from_probabilities can be used to reverse this procedure, going
+from probabilities to the underlying expected goals.
 
-This can be used to reverse-engineer predictions from other models or even bookmaker odds. The expected goals extracted from this method can for example be used as input to the goalmodel to get attack and defense ratings, and to make new predictions.
+This can be used to reverse-engineer predictions from other models or
+even bookmaker odds. The expected goals extracted from this method can
+for example be used as input to the goalmodel to get attack and defense
+ratings, and to make new predictions.
 
-Here is some code demonstrating that it can recover the expected goals which are made from a fitted goalmodel with the Poisson distribution.
+Here is some code demonstrating that it can recover the expected goals
+which are made from a fitted goalmodel with the Poisson distribution.
 
 ``` r
 # Win-Draw-Lose probabilities.
@@ -573,7 +694,13 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
     ## 2 Manchester United   Chelsea 2.291612 0.9288743
     ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
 
-You can also specify the Dixon-Coles parameter ρ (rho). Unfortunately it is not possible to extract both the two expected goals and rho, since there will typically be a large number of combinations of the three parameters that yield the same probabilities. With rho given as a constant it is however possible to extract the expected goals. Here is how you can recover the expg from the DC model fitted above, using rho = -0.13.
+You can also specify the Dixon-Coles parameter ρ (rho). Unfortunately it
+is not possible to extract both the two expected goals and rho, since
+there will typically be a large number of combinations of the three
+parameters that yield the same probabilities. With rho given as a
+constant it is however possible to extract the expected goals. Here is
+how you can recover the expg from the DC model fitted above, using rho =
+-0.13.
 
 ``` r
 # Win-Draw-Lose probabilities from DC model
@@ -611,13 +738,19 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
     ## 2 Manchester United   Chelsea 2.291612 0.9288743
     ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
 
-Other packages
-==============
+# Other packages
 
-There are some other packages out there that have similar functionality as this package. The [regista](https://github.com/Torvaney/regista) package implements a more general interface to fit the Dixon-Coles model. The [fbRanks](https://cran.r-project.org/web/packages/fbRanks/index.html) package implements only the Dixon-Coles time weighting functionality, but has a lot of other features.
+There are some other packages out there that have similar functionality
+as this package. The [regista](https://github.com/Torvaney/regista)
+package implements a more general interface to fit the Dixon-Coles
+model. The
+[fbRanks](https://cran.r-project.org/web/packages/fbRanks/index.html)
+package implements only the Dixon-Coles time weighting functionality,
+but has a lot of other features.
 
-References
-==========
+# References
 
--   Mark J. Dixon and Stuart G. Coles (1997) Modelling Association Football Scores and Inefficiencies in the Football Betting Market.
--   Håvard Rue and Øyvind Salvesen (2001) Prediction and Retrospective Analysis of Soccer Matches in a League.
+-   Mark J. Dixon and Stuart G. Coles (1997) Modelling Association
+    Football Scores and Inefficiencies in the Football Betting Market.
+-   Håvard Rue and Øyvind Salvesen (2001) Prediction and Retrospective
+    Analysis of Soccer Matches in a League.

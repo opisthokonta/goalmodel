@@ -11,11 +11,14 @@ expg_from_ou(probability, ou = 2.5, under = TRUE, upperlim = 10)
 \arguments{
 \item{probability}{Vector of probabilities for number of goals scored being less (or greater) than ou.}
 
-\item{ou}{The limit the probability reffers to. Default is 2.5.}
+\item{ou}{The limit the probability refers to. Default is 2.5.}
 
 \item{under}{Logical indicating whether the probabilities are for 'under' (TRUE, default) or 'over' (FALSE).}
 
 \item{upperlim}{Numeric giving the upper limit for expected goals the estimating procedure will consider.}
+}
+\value{
+A numeric vector with expected number of goals.
 }
 \description{
 Estimate the expected goals from over/under probabilities.
