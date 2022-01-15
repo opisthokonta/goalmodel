@@ -192,6 +192,10 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
 #' @param rho Numeric. The Dixon-Coles adjustment.
 #' @param uprx Numeric. The upper limit for evaluating the underlying distributions.
 #'
+#' @return
+#' A matrix with 3 columns with one row for each pair of expected goals.
+#'
+#'
 #' @export
 p1x2 <- function(expg1, expg2, model = 'poisson', dispersion=NULL, rho=NULL, uprx=25){
 
@@ -273,7 +277,10 @@ p1x2 <- function(expg1, expg2, model = 'poisson', dispersion=NULL, rho=NULL, upr
 
   }
 
-  cbind(prob1, probd, prob2)
+  res <- cbind(prob1, probd, prob2)
+  colnames(res) <- c('p1', 'px', 'p2')
+
+  return(res)
 
 }
 
