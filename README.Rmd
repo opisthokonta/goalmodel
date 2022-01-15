@@ -25,8 +25,8 @@ devtools::install_github("opisthokonta/goalmodel")
 
 ### Version 0.5
  
-* New function expg_from_ou().
-* New function p1x2(), to compute 
+* New function expg_from_ou() - Finds the expected goals from over/under probabilities. 
+* New function p1x2() - Compute win and draw probabilities from expected goals. 
 * Bugfix: predict_goals() with return_df=TRUE did not work properly when the team arguments were factors.
 
 

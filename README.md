@@ -22,8 +22,10 @@ devtools::install_github("opisthokonta/goalmodel")
 
 ### Version 0.5
 
--   New function expg_from_ou().
--   New function p1x2(), to compute
+-   New function expg_from_ou() - Finds the expected goals from
+    over/under probabilities.
+-   New function p1x2() - Compute win and draw probabilities from
+    expected goals.
 -   Bugfix: predict_goals() with return_df=TRUE did not work properly
     when the team arguments were factors.
 
@@ -83,7 +85,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.02 seconds
+    ## Model sucsessfully fitted in 0.03 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -140,7 +142,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 0.85 seconds
+    ## Model sucsessfully fitted in 0.89 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -209,7 +211,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.52 seconds
+    ## Model sucsessfully fitted in 0.53 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -558,7 +560,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 0.93 seconds
+    ## Model sucsessfully fitted in 0.91 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
