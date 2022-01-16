@@ -372,3 +372,134 @@ matches_last_xdays <- function(team1, team2, dates, days_since=30, first_val = N
   return(res)
 
 }
+
+
+
+
+
+#' Create league table
+#'
+#' Creates a league table with basic descriptive statistics and number of points.
+#'
+#' Points are calculated as 3 points for win, 1 for draw, and 0 for loss. Results
+#' are sorted by 1) points, 2) goal difference and 3) goals scored.
+#'
+#' Games with missing values will be skipped.
+#'
+#' @param goals1 Numeric, non-negative integer. The number of goals scored by team 1.
+#' @param goals2 Numeric, non-negative integer. The number of goals scored by team 2.
+#' @param team1 Vector of team names.
+#' @param team2 Vector of team names.
+#'
+#' #' @return
+#'  A data.frame with one row for each team in the data.
+#'
+#' @export
+league_table <- function(goals1, goals2, team1, team2){
+
+  team1 <- as.character(team1)
+  team2 <- as.character(team2)
+
+  stopifnot(length(goals1) == length(goals2),
+            length(goals2) == length(team1),
+            length(team1) == length(team2),
+            is.numeric(goals1),
+            is.numeric(goals2))
+
+  #Remove missing values
+  mising_idx <- is.na(goals1) | is.na(goals2) | is.na(team1) | is.na(team2)
+  goals1 <- goals1[!mising_idx]
+  goals2 <- goals2[!mising_idx]
+  team1 <- team1[!mising_idx]
+  team2 <- team2[!mising_idx]
+
+  all_teams <- sort(unique(c(unique(team1), unique(team2))), decreasing = FALSE)
+  n_teams <- length(all_teams)
+  ngames <- length(goals1)
+
+  goaldiff <- goals1 - goals2
+
+
+  # init result vectors
+  games_played <- rep(0, n_teams)
+  names(games_played) <- all_teams
+
+  points <- rep(0, n_teams)
+  names(points) <- all_teams
+
+  goals_scored <- rep(0, n_teams)
+  names(goals_scored) <- all_teams
+
+  goals_against <- rep(0, n_teams)
+  names(goals_against) <- all_teams
+
+  wins <- rep(0, n_teams)
+  names(wins) <- all_teams
+
+  draws <- rep(0, n_teams)
+  names(draws) <- all_teams
+
+  loss <- rep(0, n_teams)
+  names(loss) <- all_teams
+
+
+  # Loop trough all games
+  for (ii in 1:ngames){
+
+    games_played[team1[ii]] <- games_played[team1[ii]] + 1
+    games_played[team2[ii]] <- games_played[team2[ii]] + 1
+
+    goals_scored[team1[ii]] <- goals_scored[team1[ii]] + goals1[ii]
+    goals_scored[team2[ii]] <- goals_scored[team2[ii]] + goals2[ii]
+
+    goals_against[team1[ii]] <- goals_against[team1[ii]] + goals2[ii]
+    goals_against[team2[ii]] <- goals_against[team2[ii]] + goals1[ii]
+
+    if (goaldiff[ii] > 0){
+      wins[team1[ii]] <- wins[team1[ii]] + 1
+      loss[team2[ii]] <- loss[team2[ii]] + 1
+
+    } else if (goaldiff[ii] == 0){
+      draws[team1[ii]] <- draws[team1[ii]] + 1
+      draws[team2[ii]] <- draws[team2[ii]] + 1
+    } else if (goaldiff[ii] < 0) {
+      wins[team2[ii]] <- wins[team2[ii]] + 1
+      loss[team1[ii]] <- loss[team1[ii]] + 1
+
+    } else {
+      stop('sdfd')
+    }
+
+  }
+
+  # TODO: Implement head-2-head tiebreaker rule.
+
+  points = wins*3 + draws*1
+  gd <- goals_scored - goals_against
+
+  res <- data.frame(Team = all_teams,
+                    Played = games_played,
+                    Won = wins,
+                    Drawn = draws,
+                    Lost = loss,
+                    Goals_scored = goals_scored,
+                    Goals_conceded = goals_against,
+                    Goal_difference = gd,
+                    Pts = points)
+
+
+  res <- res[order(res$Pts, res$Goal_difference, res$Goals_scored, decreasing = TRUE),]
+
+  row.names(res) <- NULL
+
+  return(res)
+
+}
+
+
+
+
+
+
+
+
