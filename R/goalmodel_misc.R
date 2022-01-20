@@ -504,6 +504,106 @@ league_table <- function(goals1, goals2, team1, team2){
 
 
 
+#' Scoring rules to evaluate prediction accuracy
+#'
+#' This function provides scoring rules for evaluating prediction accuracy.
+#'
+#' Currently three scoring rules are available: The log score, Brier score, and
+#' the Ranked Probability Score (RPS).
+#'
+#' The log score is just the negative logarithm of the probability of the observed outcome.
+#'
+#'
+#'
+#' For all three scoring functions, a lower score means a better predictions. They will attain a
+#' lowest possible score of 0 if the  observed outcome were predicted with a 100% probability.'
+#' The Brier and RPS have an upper limit of 1, which indicates the worst possible
+#' prediction. The log score have no upper limit, and will be infinite if the observed
+#' outcome were predicted with a probability of 0.
+#'
+#'
+#' @param predictions A matrix or data frame with probabilities, with one column for each outcome, and one row for each prediction.
+#' @param observed Numeric or character vector of the same length as the number of predictions. It must contain an indicator of the observed outcome,
+#' either a column number or a column name.
+#' @param score Character vector of the scoring functions to use. Currently 'log', 'brier', and 'rps' are available.
+#'
+#' @references
+#' Wheatcroft, E. (2021) Evaluating probabilistic forecasts of football matches: the case against the ranked probability score.
+#' https://doi.org/10.1515/jqas-2019-0089
+#'
+#' Constantinou, A. C., and N. E. Fenton (2012) Solving the Problem of Inadequate Scoring Rules for Assessing Probabilistic Football Forecast Models. https://doi.org/10.1515/1559-0410.1418
+#'
+#'
+#' @export
+score_predictions <- function(predictions, observed, score){
+
+
+  scorefunctions <- c('log', 'brier', 'rps')
+  stopifnot(is.character(score),
+            length(score) >= 1)
+
+  score <- tolower(score)
+
+  if (!all(score %in% scorefunctions)){
+    stop('score must be one of brier, log or rps.')
+  }
+
+  # Some useful quantities.
+  ncat <- ncol(predictions)
+  npred <- nrow(predictions)
+
+  stopifnot(any(observed >= 1),
+            any(observed <= ncat),
+            length(observed) == npred)
+
+  # Output list.
+  res <- list()
+
+  # Expand observed vector to indicator matrix of the same
+  # dimensions as the predictions matrix.
+  obsmat <- matrix(0, ncol=ncat, nrow=npred)
+  for (rr in 1:npred){
+    obsmat[rr, observed[rr]] <- 1
+  }
+
+
+  # Logarithmic scoring rule
+  if ('log' %in% score){
+    log_scores <- numeric(npred)
+    for (rr in 1:npred){
+      log_scores[rr] <- -log(predictions[rr,observed[rr]])
+    }
+
+    res$log <- logscores
+
+  }
+
+
+  if ('brier' %in% score){
+    res$brier <- rowSums((predictions - obsmat)^2)
+  }
+
+
+  # Ranked Probability Score. (RPS).
+  if ('rps' %in% score){
+    rankprobscore <- numeric(npred)
+
+    for (rr in 1:npred){
+      cumulative <- 0
+      for (i in 1:ncat){
+        cumulative <- cumulative + (sum(predictions[rr,1:i]) - sum(obsmat[rr, 1:i]))^2
+      }
+      rankprobscore[rr] <- (1/(ncat-1))*cumulative
+    }
+
+    res$rps <- rankprobscore
+
+  }
+
+
+  return(res)
+
+}
 
 
 
