@@ -513,13 +513,11 @@ league_table <- function(goals1, goals2, team1, team2){
 #'
 #' The log score is just the negative logarithm of the probability of the observed outcome.
 #'
-#'
-#'
 #' For all three scoring functions, a lower score means a better predictions. They will attain a
-#' lowest possible score of 0 if the  observed outcome were predicted with a 100% probability.'
-#' The Brier and RPS have an upper limit of 1, which indicates the worst possible
-#' prediction. The log score have no upper limit, and will be infinite if the observed
-#' outcome were predicted with a probability of 0.
+#' lowest possible score of 0 if the observed outcome were predicted with a 100% probability.'
+#' The RPS has an upper limit of 1, which indicates the worst possible
+#' prediction. The Brier score has an upper limit of 2. The log score has no upper
+#' limit, and will be infinite if the observed outcome were predicted with probability 0.
 #'
 #'
 #' @param predictions A matrix or data frame with probabilities, with one column for each outcome, and one row for each prediction.
@@ -574,7 +572,7 @@ score_predictions <- function(predictions, observed, score){
       log_scores[rr] <- -log(predictions[rr,observed[rr]])
     }
 
-    res$log <- logscores
+    res$log <- log_scores
 
   }
 

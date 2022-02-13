@@ -2,7 +2,7 @@
 
 require(engsoccerdata)
 require(dplyr)
-require(Rcpp) # Should not be neccecary to load Rcpp like this, but sometimes it fails if not.
+require(Rcpp) # Should not be necessary to load Rcpp like this, but sometimes it fails if not.
 
 # Load data from English Premier League, 2011-12 season.
 engsoccerdata::england %>%
@@ -627,6 +627,55 @@ test_that("matches_last_xdays", {
   expect_true(all(abs(p1x2_res_cmp - p1x2_res_cmp) <= 0.0001))
   expect_true(all(abs(p1x2_res_nbin - p1x2_res_nbin) <= 0.0001))
 })
+
+
+
+# score_predictions function ---
+context("score_predictions function")
+
+observed_hda_vec <- match(as.character(england_2011$result), c('H', 'D', 'A'))
+
+scores_result_default <- score_predictions(predictions = pred_result_default_all,
+                                      observed = observed_hda_vec,
+                                      score = c('log', 'brier', 'rps'))
+
+
+
+scores_result_dc <- score_predictions(predictions = pred_result_dc_all,
+                                      observed = observed_hda_vec,
+                                      score = c('log', 'brier', 'rps'))
+
+test_that("matches_last_xdays", {
+  expect_true(length(scores_result_default) == 3)
+  expect_true(length(scores_result_dc) == 3)
+
+  expect_true(length(scores_result_default$log) == nrow(pred_result_default_all))
+  expect_true(length(scores_result_dc$log) == nrow(pred_result_default_all))
+
+  expect_true(length(scores_result_default$brier) == nrow(pred_result_default_all))
+  expect_true(length(scores_result_dc$brier) == nrow(pred_result_default_all))
+
+  expect_true(length(scores_result_default$rps) == nrow(pred_result_default_all))
+  expect_true(length(scores_result_dc$rps) == nrow(pred_result_default_all))
+
+  expect_true(all(scores_result_default$log > 0))
+  expect_true(all(scores_result_default$brier > 0))
+  expect_true(all(scores_result_default$rps > 0))
+
+  expect_true(all(scores_result_default$brier < 2))
+  expect_true(all(scores_result_default$rps < 1))
+
+  expect_true(all(scores_result_dc$log > 0))
+  expect_true(all(scores_result_dc$brier > 0))
+  expect_true(all(scores_result_dc$rps > 0))
+
+  expect_true(all(scores_result_dc$brier < 2))
+  expect_true(all(scores_result_dc$rps < 1))
+
+
+})
+
+
 
 
 
