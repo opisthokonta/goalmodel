@@ -23,7 +23,13 @@ Creates a league table with basic descriptive statistics and number of points.
 }
 \details{
 Points are calculated as 3 points for win, 1 for draw, and 0 for loss. Results
-are sorted by 1) points, 2) goal difference and 3) goals scored.
+are sorted by points and ties will be resolved by 1) goal difference and 2) goals scored.
+Further ties will not be resolved, and the tied teams will be ranked arbitrarily.
 
-Games with missing values will be skipped.
+Note that leagues and competitions will often have different rules for how teams
+are ranked, especially for how ties are handled. The results provided by this functions
+may therefore differ from official league rankings.
+
+Games with missing values in the number of goals scores will be ignored and will
+therefore not contribute to the table.
 }

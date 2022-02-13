@@ -389,8 +389,8 @@ matches_last_xdays <- function(team1, team2, dates, days_since=30, first_val = N
 #' are ranked, especially for how ties are handled. The results provided by this functions
 #' may therefore differ from official league rankings.
 #'
-#' Games with missing values in the number of goals scores will not contribute to
-#' the table.
+#' Games with missing values in the number of goals scores will be ignored and will
+#' therefore not contribute to the table.
 #'
 #' @param goals1 Numeric, non-negative integer. The number of goals scored by team 1.
 #' @param goals2 Numeric, non-negative integer. The number of goals scored by team 2.
@@ -597,7 +597,6 @@ score_predictions <- function(predictions, observed, score){
     res$rps <- rankprobscore
 
   }
-
 
   return(res)
 
