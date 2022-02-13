@@ -449,10 +449,10 @@ pbtts <- function(expg1, expg2, model = 'poisson', dispersion = NULL, rho = NULL
     # the DC adjustment.
 
     if (model == 'poisson'){
-      p11 <- stats::dpois(1, lambda = l1) * stats::dpois(1, lambda = l2)
+      p11 <- stats::dpois(1, lambda = expg1) * stats::dpois(1, lambda = expg2)
     } else if (model == 'negbin'){
-      p11 <- stats::dnbinom(1, mu = l1, size = 1 / dispersion) *
-        stats::dnbinom(1, mu = l2, size = 1 / dispersion)
+      p11 <- stats::dnbinom(1, mu = expg1, size = 1 / dispersion) *
+        stats::dnbinom(1, mu = expg2, size = 1 / dispersion)
     } else if (model == 'cmp'){
       p11 <- dCMP(1, lambda = ll1, upsilon = dispersion) *
         dCMP(1, lambda = ll2, upsilon = dispersion)
@@ -485,8 +485,8 @@ predict_btts <- function(model_fit, team1, team2,
 
   res <- pbtts(expg1 = dgoals$expg1, expg2 = dgoals$expg2,
               model = model_fit$model,
-              dispersion = gm_res$parameters$dispersion,
-              rho = gm_res$parameters$rho)
+              dispersion = model_fit$parameters$dispersion,
+              rho = model_fit$parameters$rho)
 
 
   if (return_df){
