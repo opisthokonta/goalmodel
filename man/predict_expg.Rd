@@ -5,6 +5,7 @@
 \alias{predict_goals}
 \alias{predict_result}
 \alias{predict_ou}
+\alias{predict_btts}
 \title{Predict Methods for goalmodel Fits}
 \usage{
 predict_expg(model_fit, team1, team2, x1 = NULL, x2 = NULL, return_df = FALSE)
@@ -38,6 +39,8 @@ predict_ou(
   ou = 2.5,
   return_df = FALSE
 )
+
+predict_btts(model_fit, team1, team2, x1 = NULL, x2 = NULL, return_df = FALSE)
 }
 \arguments{
 \item{model_fit}{A goalmodel object.}
@@ -62,6 +65,6 @@ predict_ou(
 Make predictions using a fitted goalmodel.
 }
 \details{
-These functions predict expected goals, the probabiltieis for individual scorelines, or
-1x2 results and total over/under probabilities.
+These functions predict expected goals, the probabilities for individual scorelines,
+1x2 results, both teams to score, and total over/under probabilities.
 }
