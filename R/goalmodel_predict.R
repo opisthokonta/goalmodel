@@ -7,8 +7,8 @@
 #'
 #' Make predictions using a fitted goalmodel.
 #'
-#' These functions predict expected goals, the probabiltieis for individual scorelines, or
-#' 1x2 results and total over/under probabilities.
+#' These functions predict expected goals, the probabilities for individual scorelines,
+#' 1x2 results, both teams to score, and total over/under probabilities.
 #'
 #' @param model_fit A goalmodel object.
 #' @param team1 A character vector with team names, for which to make predictions of.
@@ -185,8 +185,8 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
 
 #' Compute 1x2 probabilities from expected goals.
 #'
-#' @param expg1 Non-negative numeric. The expected number of goals. .
-#' @param expg2 Non-negative numeric. The expected number of goals. .
+#' @param expg1 Non-negative numeric. The expected number of goals.
+#' @param expg2 Non-negative numeric. The expected number of goals.
 #' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), or Conway-Maxwell-Poisson ('cmp') model.
 #' @param dispersion Non-negative numeric. The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
 #' @param rho Numeric. The Dixon-Coles adjustment.
@@ -370,4 +370,137 @@ predict_ou <- function(model_fit, team1, team2,
   return(out)
 
 }
+
+
+
+#' Compute both-teams-to-score probabilities from expected goals.
+#'
+#' @param expg1 Non-negative numeric. The expected number of goals.
+#' @param expg2 Non-negative numeric. The expected number of goals.
+#' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), or Conway-Maxwell-Poisson ('cmp') model.
+#' @param dispersion Non-negative numeric. The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
+#' @param rho Numeric. The Dixon-Coles adjustment.
+#'
+#' @return
+#' A numeric vector with probabilities for both teams to score.
+#'
+#' @export
+pbtts <- function(expg1, expg2, model = 'poisson', dispersion = NULL, rho = NULL){
+
+  stopifnot(length(expg1) == length(expg2),
+            all(expg1 >= 0),
+            all(expg2 >= 0),
+            length(model) >= 1,
+            is.numeric(expg1), is.numeric(expg2),
+            model %in% c('poisson', 'negbin', 'cmp'))
+
+  nn <- length(expg1)
+
+  if (model %in% c('negbin', 'cmp') & is.null(dispersion)){
+    stop('Dispersion parameter not provided.')
+  }
+
+
+  if (!is.null(dispersion)){
+    stopifnot(length(dispersion) == 1 | length(dispersion) == nn,
+              is.numeric(dispersion),
+              all(dispersion > 0))
+
+    if (length(dispersion) == 1){
+      dispersion <- rep(dispersion, nn)
+    }
+
+    if (model == 'poisson'){
+      warning('Dispersion parameter will be ignored for model = "poisson".')
+    }
+
+  }
+
+  if (!is.null(rho)){
+    stopifnot(length(rho) == 1 | length(rho) == nn,
+              is.numeric(rho))
+
+    if (length(rho) == 1){
+      rho <- rep(rho, nn)
+    }
+  }
+
+
+  if (model == 'poisson'){
+    res <- (1 - stats::dpois(0, lambda = expg1)) * (1 - stats::dpois(0, lambda = expg2))
+  } else if (model == 'negbin'){
+    res <- (1 - stats::dnbinom(0, mu = expg1, size = 1 / dispersion)) *
+      (1 - stats::dnbinom(0, mu = expg2, size = 1 / dispersion))
+  } else if (model == 'cmp'){
+    # Convert the expected goals to CMP-lambda.
+    ll1 <- lambdaCMP(mu = expg1, upsilon = dispersion, method = 'fast')
+    ll2 <- lambdaCMP(mu = expg2, upsilon = dispersion, method = 'fast')
+
+    res <- (1 - dCMP(0, lambda = ll1, upsilon = dispersion)) *
+      (1 - dCMP(0, lambda = ll2, upsilon = dispersion))
+  }
+
+  stopifnot(length(res) == length(expg1))
+
+  # Dixon-Coles
+  if (!is.null(rho)){
+
+    # Compute the probability of 1-1 score, which is needed to compute
+    # the DC adjustment.
+
+    if (model == 'poisson'){
+      p11 <- stats::dpois(1, lambda = l1) * stats::dpois(1, lambda = l2)
+    } else if (model == 'negbin'){
+      p11 <- stats::dnbinom(1, mu = l1, size = 1 / dispersion) *
+        stats::dnbinom(1, mu = l2, size = 1 / dispersion)
+    } else if (model == 'cmp'){
+      p11 <- dCMP(1, lambda = ll1, upsilon = dispersion) *
+        dCMP(1, lambda = ll2, upsilon = dispersion)
+    }
+
+    dc_adj <- (p11 * (1-rho)) - p11
+
+    stopifnot(length(dc_adj) == length(res))
+
+    res  <- res + dc_adj
+
+  }
+
+  return(res)
+
+}
+
+
+#' @rdname predict_expg
+#' @export
+predict_btts <- function(model_fit, team1, team2,
+                           x1=NULL, x2=NULL, return_df = FALSE){
+
+
+  stopifnot(length(team1) == length(team2))
+
+  ## Compute bivariate probability distribution of goals.
+  dgoals <- predict_goals(model_fit, team1 = team1, team2 = team2,
+                          x1 = x1, x2 = x2)
+
+  res <- pbtts(expg1 = dgoals$expg1, expg2 = dgoals$expg2,
+              model = model_fit$model,
+              dispersion = gm_res$parameters$dispersion,
+              rho = gm_res$parameters$rho)
+
+
+  if (return_df){
+    out <- data.frame(team1 = team1, team2 = team2,
+                      prob_btts = res,
+                      stringsAsFactors = FALSE,
+                      row.names = NULL)
+
+  } else {
+    out <- list(prob_btts = res)
+  }
+
+  return(out)
+
+}
+
 
