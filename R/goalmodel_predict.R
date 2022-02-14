@@ -396,6 +396,9 @@ pbtts <- function(expg1, expg2, model = 'poisson', dispersion = NULL, rho = NULL
 
   nn <- length(expg1)
 
+  names(expg1) <- NULL
+  names(expg2) <- NULL
+
   if (model %in% c('negbin', 'cmp') & is.null(dispersion)){
     stop('Dispersion parameter not provided.')
   }
@@ -480,7 +483,7 @@ predict_btts <- function(model_fit, team1, team2,
   stopifnot(length(team1) == length(team2))
 
   ## Compute bivariate probability distribution of goals.
-  dgoals <- predict_goals(model_fit, team1 = team1, team2 = team2,
+  dgoals <- predict_expg(model_fit, team1 = team1, team2 = team2,
                           x1 = x1, x2 = x2)
 
   res <- pbtts(expg1 = dgoals$expg1, expg2 = dgoals$expg2,
