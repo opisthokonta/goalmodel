@@ -654,11 +654,26 @@ p1x2_res_cmp <- p1x2(expg1 = pred_expg_cmp$expg1, expg2 = pred_expg_cmp$expg2,
                 model = 'cmp', dispersion = gm_res_cmp$parameters$dispersion)
 
 
-test_that("matches_last_xdays", {
+test_that("p1x2", {
   expect_true(all(abs(p1x2_res_default - pred_result_default) <= 0.0001))
   expect_true(all(abs(p1x2_res_dc - pred_result_dc) <= 0.0001))
   expect_true(all(abs(p1x2_res_cmp - p1x2_res_cmp) <= 0.0001))
   expect_true(all(abs(p1x2_res_nbin - p1x2_res_nbin) <= 0.0001))
+})
+
+
+# pbtts function ----
+context("pbtts function")
+
+pbtts_res_default <- pbtts(expg1 = pred_expg_default$expg1,
+                           expg2 = pred_expg_default$expg2,
+                           model = 'poisson')
+
+
+test_that("pbtts", {
+  expect_true(is.numeric(pbtts_res_default))
+  expect_true(all(abs(pbtts_res_default - pred_btts_default$prob_btts) <= 0.0001))
+  expect_true(length(pbtts_res_default) == length(to_predict1))
 })
 
 
@@ -678,7 +693,7 @@ scores_result_dc <- score_predictions(predictions = pred_result_dc_all,
                                       observed = observed_hda_vec,
                                       score = c('log', 'brier', 'rps'))
 
-test_that("matches_last_xdays", {
+test_that("score_predictions", {
   expect_true(length(scores_result_default) == 3)
   expect_true(length(scores_result_dc) == 3)
 
