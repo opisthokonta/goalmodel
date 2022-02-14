@@ -20,6 +20,15 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.6
+
+-   New functions predict_btts() and pbtts() for computing
+    Both-Teams-To-Score probabilities.
+-   New function score_predictions(), for evaluating prediction accuracy
+    using Ranked Probability Scores, Brier scores, and Log scores.
+-   New function league_table() that computes a league table with points
+    and useful summary statistics.
+
 ### Version 0.5
 
 -   New function expg_from_ou() - Finds the expected goals from
@@ -142,7 +151,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 0.89 seconds
+    ## Model sucsessfully fitted in 0.88 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -211,7 +220,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.53 seconds
+    ## Model sucsessfully fitted in 0.54 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -560,7 +569,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 0.91 seconds
+    ## Model sucsessfully fitted in 0.93 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 

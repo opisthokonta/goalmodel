@@ -23,6 +23,12 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.6
+* New functions predict_btts() and pbtts() for computing Both-Teams-To-Score probabilities.
+* New function score_predictions(), for evaluating prediction accuracy using Ranked Probability Scores, Brier scores, and Log scores.
+* New function league_table() that computes a league table with points and useful summary statistics. 
+
+
 ### Version 0.5
  
 * New function expg_from_ou() - Finds the expected goals from over/under probabilities. 
