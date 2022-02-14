@@ -272,8 +272,8 @@ test_that("Fitting CMP model", {
 # Making predictions ----
 context("Making predictions")
 
-to_predict1 <- c('Arsenal', 'Manchester United')
-to_predict2 <- c('Fulham', 'Chelsea')
+to_predict1 <- c('Arsenal', 'Manchester United', 'Liverpool', 'Stoke City')
+to_predict2 <- c('Fulham', 'Chelsea', 'Tottenham Hotspur', 'Manchester City')
 
 pred_expg_default <- predict_expg(gm_res, team1=to_predict1, team2=to_predict2, return_df = FALSE)
 pred_expg_dc <- predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = FALSE)
@@ -424,6 +424,39 @@ test_that("Predict ou", {
   expect_equal(is.data.frame(pred_ou_dc_df), TRUE)
 
 })
+
+
+pred_btts_default <- predict_btts(gm_res, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_btts_dc <- predict_btts(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_btts_nbin <- predict_btts(gm_res_nbin, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+pred_btts_cmp <- predict_btts(gm_res_cmp, team1=to_predict1, team2=to_predict2, return_df = FALSE)
+
+pred_btts_default_df <- predict_btts(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
+
+
+test_that("Predict btts", {
+
+  expect_true(is.list(pred_btts_default))
+  expect_true(is.list(pred_btts_dc))
+  expect_true(is.list(pred_btts_nbin))
+  expect_true(is.list(pred_btts_cmp))
+
+  expect_true(all(abs(pred_btts_default$prob_btts >= 0)))
+  expect_true(all(abs(pred_btts_dc$prob_btts >= 0)))
+  expect_true(all(abs(pred_btts_nbin$prob_btts >= 0)))
+  expect_true(all(abs(pred_btts_cmp$prob_btts >= 0)))
+
+  expect_true(all(abs(pred_btts_default$prob_btts <= 1)))
+  expect_true(all(abs(pred_btts_dc$prob_btts <= 1)))
+  expect_true(all(abs(pred_btts_nbin$prob_btts <= 1)))
+  expect_true(all(abs(pred_btts_cmp$prob_btts <= 1)))
+
+  expect_true(is.data.frame(pred_btts_default_df))
+
+
+})
+
+
 
 # DC weight function----
 context("DC weights")
