@@ -40,6 +40,65 @@ devtools::install_github("opisthokonta/goalmodel")
 
 See NEWS.md for changes for complete version history.
 
+# Overview
+
+The main function in this package is the `goalmodel` function, which is
+used to fit a range of different models, including using different
+probability distributions and predictors. It also allows for setting
+parameters to a fixed value, which can be useful for more advanced
+techniques such as two-step estimation.
+
+The following probability distributions are available for fitting with
+the `goalmodel` function via the `model` argument: - `poisson`, for the
+independent Poisson model, sometimes also called the double Poisson
+model. - `negbin`, for the (independent) negative Binomial model, which
+allows for more variance (overdisperison) than the Poisson model. -
+`cmp`, for the (independent) Conway-Maxwell-Poisson, which allows for
+both underdispersion and overdispersion. - `gaussian` for the
+(independent) bivariate Gaussian (also known as the normal distribution)
+model. This is useful for modelling scores that might be decimal
+numbers.
+
+In addition, the Dixon-Coles model (Dixon and Coles, 1997) is also
+available. The model extend the Poisson model so that it modifies the
+probabilities for low scores. The Dixon-Coles model can be fitted by
+setting the `dc` argument to `TRUE`. Hence, the Dixon-Coles adjustment
+can be used not only with Poisson models, but also with the Negative
+Binomial and Conway-Maxwell-Poisson models.
+
+With a fitted model, you would want to make predictions. This package
+has functions for making different sorts of predictions: -
+`predict_expg`, for predicting expected goals. - `predict_goals`, for
+the scoreline probabilities. - `predict_result`, for the final result
+(home-draw-away or 1x2) probabilities. - `predict_ou`, for over/under
+probabilities. - `predict_btts`, for both teams to score probabilities.
+
+There are also functions that can be useful for making predictions
+without relying on a fitted model, but instead uses expected goals
+directly. You can use all of the probability distributions listed above
+(except ‘gaussian’) as the underlying model, including the Dixon-Coles
+adjustment. - `p1x2` - `pbtts`
+
+There are a couple of functions for ‘reverse engineering’ results from
+other models. These functions relies on the Poisson model. -
+`expg_from_ou` converts over/under probabilities to expected goals. -
+`expg_from_probabilities` converts 1x2 probabilities to expected goals.
+
+Misc - `weights_dc`, make weights to let results further back in time
+have less influence on the estimates.  
+- `score_predictions` computes ‘scoring rules’ to assess the quality of
+predictions. - `days_since_last_match` calculates how long it was since
+the previous game for each team. - `matches_last_xdays` calculates how
+many games each team have played for a given period in the past.
+
+There are also some functions to work directly with the
+Conway-Maxwell-Poisson probability distribution. - `dCMP`, `pCMP`, and
+`qCMP`, are the probability, cumulative and quantile functions for the
+CMP distribution. - `eCMP` and `lambdaCMP` converts between expected
+value and the lambda parameter in the CMP distribution. - `upsilon.ml`
+estimates the dispersion parameter (upsilon) from data and some given
+rate (lambda) or mean (mu) parameters.
+
 # The default model
 
 The goalmodel package models the goal scoring intensity so that it is a
@@ -94,7 +153,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.03 seconds
+    ## Model sucsessfully fitted in 0.01 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -151,7 +210,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 0.88 seconds
+    ## Model sucsessfully fitted in 0.52 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -190,7 +249,7 @@ summary(gm_res_dc)
     ## Home field advantage       0.27 
     ## Dixon-Coles adj. (rho)    -0.13
 
-Notice that the estimated ρ parameter is listed together with the other
+Notice how the estimated ρ parameter is listed together with the other
 parameters.
 
 # The Rue-Salvesen adjustment
@@ -220,7 +279,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.54 seconds
+    ## Model sucsessfully fitted in 0.32 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -569,7 +628,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 0.93 seconds
+    ## Model sucsessfully fitted in 0.55 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -757,7 +816,11 @@ package implements a more general interface to fit the Dixon-Coles
 model. The
 [fbRanks](https://cran.r-project.org/web/packages/fbRanks/index.html)
 package implements only the Dixon-Coles time weighting functionality,
-but has a lot of other features.
+but has a lot of other features. In
+[footBayes](https://cran.r-project.org/package=footBayes) you can fit
+models with Bayesian procedures. The package includes several models,
+including bivariate Poisson models and models with time-varying attack
+and defense parameters.
 
 # References
 
