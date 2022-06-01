@@ -208,6 +208,7 @@ expg_from_probabilities <- function(probabilities, rho=0, uprx=75){
 
 
 #' Estimate the expected goals from over/under probabilities.
+#'
 #' From a probability of goals scored being below a given number (like 2.5), compute
 #' the expected number of goals scored, assuming an underlying Poisson distribution.
 #'

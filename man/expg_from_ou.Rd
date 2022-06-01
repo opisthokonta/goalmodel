@@ -2,9 +2,7 @@
 % Please edit documentation in R/goalmodel_misc.R
 \name{expg_from_ou}
 \alias{expg_from_ou}
-\title{Estimate the expected goals from over/under probabilities.
-From a probability of goals scored being below a given number (like 2.5), compute
-the expected number of goals scored, assuming an underlying Poisson distribution.}
+\title{Estimate the expected goals from over/under probabilities.}
 \usage{
 expg_from_ou(probability, ou = 2.5, under = TRUE, upperlim = 10)
 }
@@ -21,7 +19,6 @@ expg_from_ou(probability, ou = 2.5, under = TRUE, upperlim = 10)
 A numeric vector with expected number of goals.
 }
 \description{
-Estimate the expected goals from over/under probabilities.
 From a probability of goals scored being below a given number (like 2.5), compute
 the expected number of goals scored, assuming an underlying Poisson distribution.
 }
