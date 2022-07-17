@@ -32,9 +32,14 @@ Rcpp::NumericVector CMP_normalizing_constant(Rcpp::NumericVector& lambda,
     int lambda_idx = ll % lambda.length();
     int upsilon_idx = ll % upsilon.length();
 
+    if (upsilon[upsilon_idx] == 1){
+      res[ll] = std::exp(lambda[lambda_idx]);
+      continue;
+    }
+
     // Upper limit of sum.
     int ul;
-    ul = std::max(50.0, std::ceil( std::pow(lambda[lambda_idx] / error, 1 / upsilon[upsilon_idx] ) ));
+    ul = std::max(20.0, std::ceil( std::pow(lambda[lambda_idx] / error, 1 / upsilon[upsilon_idx] ) ));
 
     for (int ii = 0; ii != ul; ++ii){
       cc += std::exp( (ii * std::log(lambda[lambda_idx] ))  -  upsilon[upsilon_idx] * lgamma(ii+1) );
@@ -315,7 +320,7 @@ Rcpp::NumericVector eCMP(Rcpp::NumericVector& lambda,
 
       // Upper limit for computing the expectation
       // the same as for computing the normalization constant.
-      ul = std::max(50.0, std::ceil( std::pow(lambda[lambda_idx] / error, 1 / upsilon[upsilon_idx]) ));
+      ul = std::max(20.0, std::ceil( std::pow(lambda[lambda_idx] / error, 1 / upsilon[upsilon_idx]) ));
 
       // The expectation.
       ee = 0;
