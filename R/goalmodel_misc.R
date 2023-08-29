@@ -551,9 +551,17 @@ score_predictions <- function(predictions, observed, score){
   ncat <- ncol(predictions)
   npred <- nrow(predictions)
 
-  stopifnot(any(observed >= 1),
-            any(observed <= ncat),
-            length(observed) == npred)
+  if (is.numeric(observed)){
+    stopifnot(any(observed >= 1),
+              any(observed <= ncat),
+              length(observed) == npred)
+  } else if (is.character(observed)){
+    stopifnot(any(observed %in% colnames(predictions)))
+  }
+
+  if (is.character(observed)){
+    observed <- match(observed, colnames(predictions))
+  }
 
   # Output list.
   res <- list()
