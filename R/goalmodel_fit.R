@@ -33,8 +33,8 @@ tau <- function(goals1, goals2, lambda1, lambda2, rho){
 # Compute the expected value in goalmodel.
 #
 # Compute the expected value for the poisson and negative binomial
-# from a list of parameteres and data. This function is used many
-# places, like when making predictions and in the negloklik function.
+# from a list of parameters and data. This function is used many
+# places, like when making predictions and in the negloglik function.
 #
 lambda_pred <- function(plist, team1, team2, x1, x2){
 
@@ -274,7 +274,7 @@ negloglik <- function(params, goals1, goals2, team1, team2,
   } else if (model == 'cmp'){
     exp_log_upsilon <- exp(plist$dispersion)
 
-    # This is a dirty hack essentially setting har upper and lower
+    # This is a dirty hack essentially setting hard upper and lower
     # bounds for the the dispersion parameter.
     if (exp_log_upsilon < 0.7){return(Inf)}
     if (exp_log_upsilon > 1.7){return(Inf)}
@@ -302,6 +302,22 @@ negloglik <- function(params, goals1, goals2, team1, team2,
     }
 
     log_lik_terms <- log_lik_terms + log(dc_adj)
+  }
+
+
+  if ('hurdle' %in% names(plist)){
+
+    zz_idx <- goals1 == 0 & goals2 == 0
+
+    hurdle_adj <- exp(plist$hurdle) * exp(-(expg$expg1 + expg$expg2))
+
+    if (any(hurdle_adj >= 1)){
+      return(Inf)
+    }
+
+    log_lik_terms[zz_idx] <- log(hurdle_adj[zz_idx])
+    log_lik_terms[!zz_idx] <- log(1 - hurdle_adj[!zz_idx]) + log_lik_terms[!zz_idx]
+
   }
 
   # sum the log likelihood.
@@ -488,6 +504,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 #' @param hfa Logical (TRUE by default). Include a (home field) advantage for team 1.
 #' @param dc Logical (FALSE by default). If TRUE an adjustment for low scoring goals is included in the model.
 #' @param rs Logical (FALSE by default). If TRUE an adjustment for teams to over and under estimate the opponent.
+#' @param hurdle Logical (FALSE by default). If TRUE, 0-0 results will be modeled using a separate parameter (a hurdle model).
 #' @param fixed_params A list with parameters that should be kept constant while the other parameters are estimated from data.
 #' @param weights Numeric vector of weigths that determine the influence of each match on the final parameter estimates.
 #' @param model String indicating whether the goals follow a 'poisson' model (default), a Negative Binomial ('negbin'), Conway-Maxwell-Poisson ('cmp') or a Gaussian ('gaussian') model.
@@ -527,6 +544,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 #' \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
 #' \item dispersion - The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
 #' \item sigma - The standard deviation in a Gaussian model.
+#' \item hurdle - The hurdle parameter.
 #' }
 #'
 #' @examples
@@ -536,7 +554,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 #' @export
 goalmodel <- function(goals1, goals2, team1, team2,
                       x1 = NULL, x2=NULL,
-                      hfa=TRUE, dc=FALSE, rs=FALSE,
+                      hfa=TRUE, dc=FALSE, rs=FALSE, hurdle = FALSE,
                       fixed_params = NULL, weights=NULL,
                       model = 'poisson', optim_method='BFGS'){
 
@@ -558,6 +576,21 @@ goalmodel <- function(goals1, goals2, team1, team2,
     if (model %in% c('gaussian')){
       stop('Dixon-Coles adjustment does not work with a Gaussian model.')
     }
+  }
+
+  if (hurdle){
+    if (dc){
+      stop('dc and hurdle can not both be true.')
+    }
+
+    if (model != 'poisson'){
+      stop("Hurdle model only works for model = 'poisson'.")
+    }
+
+    if(!any(goals1 == 0 & goals2 == 0)){
+      stop('Hurdle model is not applicable when there are no instances of 0-0.')
+    }
+
   }
 
   if (!is_connected(cbind(team1, team2))){
@@ -608,7 +641,7 @@ goalmodel <- function(goals1, goals2, team1, team2,
   ngames <- length(goals1)
 
   # If it is sufficient to fit the model with glm.fit().
-  mdefault <- model %in% c('poisson', 'gaussian') & dc == FALSE & rs == FALSE & is.null(fixed_params)
+  mdefault <- model %in% c('poisson', 'gaussian') & dc == FALSE & rs == FALSE & hurdle == FALSE & is.null(fixed_params)
 
   fitter <- ifelse(mdefault, 'glm.fit', 'gm')
 
@@ -668,6 +701,10 @@ goalmodel <- function(goals1, goals2, team1, team2,
 
     if (rs){
       parameter_list_init$gamma <- 0.0
+    }
+
+    if (hurdle){
+      parameter_list_init$hurdle <- 0.0
     }
 
     if (model == 'negbin'){
@@ -787,6 +824,11 @@ goalmodel <- function(goals1, goals2, team1, team2,
     # rescale sigma
     if ('sigma' %in% names(parameter_list_est)){
       parameter_list_est$sigma <- exp(parameter_list_est$sigma)
+    }
+
+    # rescale hurlde parameter
+    if ('hurdle' %in% names(parameter_list_est)){
+      parameter_list_est$hudrle <- exp(parameter_list_est$hurdle)
     }
 
     # Add the fixed parameters to the parameter list.

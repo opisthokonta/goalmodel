@@ -63,6 +63,38 @@ test_that("Fitting Dixon-Coles model", {
 })
 
 
+# Model fitting - Hurdle model ----
+context("Model fitting - Hurdle model")
+
+gm_res_hurdle <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
+                       team1 = england_2011$home, team2=england_2011$visitor,
+                       hurdle=TRUE)
+
+
+gm_res_hurdle$parameters$zip
+
+test_that("Fitting Hurdle model", {
+  expect_equal(class(gm_res_hurdle), 'goalmodel')
+  expect_equal(gm_res_hurdle$parameters$dispersion, NULL)
+  expect_equal(is.numeric(gm_res_hurdle$parameters$hurdle), TRUE)
+  expect_equal(gm_res_hurdle$parameters$gamma, NULL)
+  expect_equal(gm_res_hurdle$parameters$rho, NULL)
+  expect_equal(gm_res$parameters$sigma, NULL)
+  expect_equal(any(is.na(gm_res_hurdle$parameters$attack)), FALSE)
+  expect_equal(any(is.na(gm_res_hurdle$parameters$defense)), FALSE)
+  expect_equal(names(gm_res_hurdle$parameters$attack), names(gm_res_hurdle$parameters$defense))
+  expect_equal(any(duplicated(names(gm_res_hurdle$parameters$attack))), FALSE)
+  expect_equal(any(duplicated(names(gm_res_hurdle$parameters$defense))), FALSE)
+  expect_true(gm_res_hurdle$converged)
+
+  # Fit DC model on dataset with where there are no low-scoring games
+  expect_error(goalmodel(goals1 = england_2011$hgoal+2, goals2 = england_2011$vgoal+2,
+                         team1 = england_2011$home, team2=england_2011$visitor,
+                         dc=TRUE))
+})
+
+
+
 # Model fitting - Negbin model ----
 context("Model fitting - Negbin model")
 
@@ -678,7 +710,7 @@ test_that("pbtts", {
 
 
 
-# score_predictions function ---
+# score_predictions function ----
 context("score_predictions function")
 
 observed_hda_vec <- match(as.character(england_2011$result), c('H', 'D', 'A'))

@@ -14,6 +14,7 @@ goalmodel(
   hfa = TRUE,
   dc = FALSE,
   rs = FALSE,
+  hurdle = FALSE,
   fixed_params = NULL,
   weights = NULL,
   model = "poisson",
@@ -38,6 +39,8 @@ goalmodel(
 \item{dc}{Logical (FALSE by default). If TRUE an adjustment for low scoring goals is included in the model.}
 
 \item{rs}{Logical (FALSE by default). If TRUE an adjustment for teams to over and under estimate the opponent.}
+
+\item{hurdle}{Logical (FALSE by default). If TRUE, 0-0 results will be modeled using a separate parameter (a hurdle model).}
 
 \item{fixed_params}{A list with parameters that should be kept constant while the other parameters are estimated from data.}
 
@@ -80,6 +83,7 @@ The following parameter components are optional, and depends on what kind of mod
 \item beta - If additional covarites are used, this is a named mumeric of the regression coefficients.
 \item dispersion - The dispersion parameter in the Negative Binomial model or the Conway-Maxwell-Poisson model.
 \item sigma - The standard deviation in a Gaussian model.
+\item hurdle - The hurdle parameter.
 }
 }
 \description{
