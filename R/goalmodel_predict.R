@@ -16,7 +16,7 @@
 #' @param x1 Additional covariates to be used for making predictions.
 #' @param x2 Additional covariates to be used for making predictions.
 #' @param ou Numeric, defining the over/under. Default is 2.5.
-#' @param maxgoal Numeric, the upper limit of how many goals to make predictions for. If not set, a resonable upper limit will be found based on the data used to fit the model.
+#' @param maxgoal Numeric, the upper limit of how many goals to make predictions for. If not set, a reasonable upper limit will be found based on the data used to fit the model.
 #' @param lwrx Numeric. The lowest upper limit for the number of goals to compute probabilities for, if maxgoal is not given.
 #' @param return_df Whether a data.frame should be returned.
 #'
@@ -123,12 +123,17 @@ predict_goals <- function(model_fit, team1, team2, x1=NULL, x2=NULL,
         dCMP(res$goals2, lambda = ll2[res$team2], upsilon = model_fit$parameters$dispersion)
     }
 
-    # Dixon-Coles adjustemt.
+    # Dixon-Coles adjustment
     if (!is.null(model_fit$parameters$rho)){
       res$probability <- tau(goals1 = res$goals1, goals2 = res$goals2,
                             lambda1 = expg1_long, lambda2 = expg2_long,
                             rho = model_fit$parameters$rho) * res$probability
     }
+
+    # 0-0 Hurdle adjustment
+    # if (!is.null(model_fit$parameters$hurdle)){
+    #
+    # }
 
 
   } else {

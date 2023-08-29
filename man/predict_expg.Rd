@@ -55,7 +55,7 @@ predict_btts(model_fit, team1, team2, x1 = NULL, x2 = NULL, return_df = FALSE)
 
 \item{return_df}{Whether a data.frame should be returned.}
 
-\item{maxgoal}{Numeric, the upper limit of how many goals to make predictions for. If not set, a resonable upper limit will be found based on the data used to fit the model.}
+\item{maxgoal}{Numeric, the upper limit of how many goals to make predictions for. If not set, a reasonable upper limit will be found based on the data used to fit the model.}
 
 \item{lwrx}{Numeric. The lowest upper limit for the number of goals to compute probabilities for, if maxgoal is not given.}
 
