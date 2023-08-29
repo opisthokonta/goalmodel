@@ -23,6 +23,12 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.6.2 (development version)
+* Can now fit a hurdle model (See A. Owen (2017) The Application of Hurdle Models to Accurately Model 0-0 Draws in Predictive Models of Football Match Outcomes), but prediction methods are not yet implemented. 
+* Small bugfixes in the `score_predictions` function.
+* README now has an example of how to use the `score_predictions` function. 
+
+
 ### Version 0.6
 * New functions predict_btts() and pbtts() for computing Both-Teams-To-Score probabilities.
 * New function score_predictions(), for evaluating prediction accuracy using Ranked Probability Scores, Brier scores, and Log scores.
@@ -399,6 +405,46 @@ gm_res_rs2$parameters$gamma <- 0.1
 predict_result(gm_res, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
+
+
+# Evaluating predictions
+
+To evaluate and compare the quality of predictions between different models, you need a measure of how well the predictions match the observed outcomes. The `score_predictions` function can help with this, and implements three different scoring rules. Here is an example of how it works. The example is done in-sample, but a proper evaluation should compute scores out-of-sample. 
+
+```{r}
+
+my_predictions_default <- predict_result(gm_res, team1 = to_predict1, team2 = to_predict2, return_df = TRUE)
+my_predictions_dc <- predict_result(gm_res_dc, team1 = to_predict1, team2 = to_predict2, return_df = TRUE)
+
+
+england_2011 %>% 
+  # Select the games to evaluate
+  mutate(teams_string = paste(home, '-', visitor)) %>% 
+  filter(teams_string %in% paste(to_predict1, '-', to_predict2)) %>% 
+  # Transform the result column (H, D, A) to reflect the column names of the prediction matrix.
+  mutate(result2 = c('H' = 'p1', 'D'='pd', 'A' = 'p2')[result]) %>% 
+  select(home, visitor, result2) -> england_2011_to_score
+
+
+predictions_scores_default <- score_predictions(predictions = my_predictions_default[,c('p1','pd','p2')], 
+                                        observed = england_2011_to_score$result2, 
+                                        score = c('log', 'brier', 'rps'))
+
+
+predictions_scores_dc <- score_predictions(predictions = my_predictions_dc[,c('p1','pd','p2')], 
+                                        observed = england_2011_to_score$result2, 
+                                        score = c('log', 'brier', 'rps'))
+
+# Total log score for default model, 4.27
+sum(predictions_scores_default$log)
+
+# Total log score for Dixon-Coles model, 4.33, which is better than for default.
+sum(predictions_scores_dc$log)
+
+
+```
+
+
 
 # Miscalaneous
 

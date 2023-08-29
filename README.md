@@ -20,6 +20,16 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
+### Version 0.6.2 (development version)
+
+-   Can now fit a hurdle model (See A. Owen (2017) The Application of
+    Hurdle Models to Accurately Model 0-0 Draws in Predictive Models of
+    Football Match Outcomes), but prediction methods are not yet
+    implemented.
+-   Small bugfixes in the `score_predictions` function.
+-   README now has an example of how to use the `score_predictions`
+    function.
+
 ### Version 0.6
 
 -   New functions predict_btts() and pbtts() for computing
@@ -183,7 +193,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.01 seconds
+    ## Model sucsessfully fitted in 0.03 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -240,7 +250,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 0.52 seconds
+    ## Model sucsessfully fitted in 0.93 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -309,7 +319,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.32 seconds
+    ## Model sucsessfully fitted in 0.56 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -658,7 +668,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 0.55 seconds
+    ## Model sucsessfully fitted in 0.96 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -741,6 +751,51 @@ predict_result(gm_res_rs2, team1=to_predict1, team2=to_predict2, return_df = TRU
     ## 1           Arsenal    Fulham 0.6047391 0.2083325 0.1869284
     ## 2 Manchester United   Chelsea 0.6539250 0.1917532 0.1543218
     ## 3  Bolton Wanderers Liverpool 0.2780789 0.2603511 0.4615700
+
+# Evaluating predictions
+
+To evaluate and compare the quality of predictions between different
+models, you need a measure of how well the predictions match the
+observed outcomes. The `score_predictions` function can help with this,
+and implements three different scoring rules. Here is an example of how
+it works. The example is done in-sample, but a proper evaluation should
+compute scores out-of-sample.
+
+``` r
+my_predictions_default <- predict_result(gm_res, team1 = to_predict1, team2 = to_predict2, return_df = TRUE)
+my_predictions_dc <- predict_result(gm_res_dc, team1 = to_predict1, team2 = to_predict2, return_df = TRUE)
+
+
+england_2011 %>% 
+  # Select the games to evaluate
+  mutate(teams_string = paste(home, '-', visitor)) %>% 
+  filter(teams_string %in% paste(to_predict1, '-', to_predict2)) %>% 
+  # Transform the result column (H, D, A) to reflect the column names of the prediction matrix.
+  mutate(result2 = c('H' = 'p1', 'D'='pd', 'A' = 'p2')[result]) %>% 
+  select(home, visitor, result2) -> england_2011_to_score
+
+
+predictions_scores_default <- score_predictions(predictions = my_predictions_default[,c('p1','pd','p2')], 
+                                        observed = england_2011_to_score$result2, 
+                                        score = c('log', 'brier', 'rps'))
+
+
+predictions_scores_dc <- score_predictions(predictions = my_predictions_dc[,c('p1','pd','p2')], 
+                                        observed = england_2011_to_score$result2, 
+                                        score = c('log', 'brier', 'rps'))
+
+# Total log score for default model, 4.27
+sum(predictions_scores_default$log)
+```
+
+    ## [1] 4.273418
+
+``` r
+# Total log score for Dixon-Coles model, 4.33, which is better than for default.
+sum(predictions_scores_dc$log)
+```
+
+    ## [1] 4.336003
 
 # Miscalaneous
 
