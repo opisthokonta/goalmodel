@@ -10,7 +10,8 @@ engsoccerdata::england %>%
          tier==c(1)) %>%
   dplyr::mutate(Date = as.Date(Date),
          home = as.character(home),
-         visitor= as.character(visitor)) -> england_2011
+         visitor= as.character(visitor)) %>%
+  dplyr::arrange(Date) -> england_2011
 
 
 # Model fitting - Default model ----
