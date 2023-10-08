@@ -370,8 +370,8 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
   }
 
   # Sum-to-zero constraint for the first team.
-  xmata[team1_stacked == all_teams[1]] <- -1
-  xmatd[team2_stacked == all_teams[1]] <- -1
+  xmata[team1_stacked == all_teams[1],] <- -1
+  xmatd[team2_stacked == all_teams[1],] <- 1
 
   # Combine the attack and defence matrices.
   colnames(xmata) <- paste(colnames(xmata), 'Attack', sep='_')
@@ -430,7 +430,7 @@ gm_fit_glm <- function(goals1, goals2, team1, team2,
 
   defense_params <- glm_res$coefficients[grepl('_Defense$', names(glm_res$coefficients))]
   names(defense_params) <- sub('_Defense$', '', names(defense_params))
-  defense_params <- c(sum(defense_params), defense_params)
+  defense_params <- c(sum(defense_params)*-1, defense_params)
   names(defense_params)[1] <- all_teams[1]
 
   param_list <- list(attack = attack_params,
