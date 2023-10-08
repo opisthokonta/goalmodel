@@ -23,7 +23,9 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
-### Version 0.6.2 (development version)
+### Version 0.6.3 (development version)
+
+* Fixed important bug that caused the defense parameters to be slightly wrong in certain models. This affected mostly the defense parameter for the first team in alphabetical order. In terms of prediction error this affected the expected goals to be off by less than 0.1 goals for games involving the first team. Models that were affected were the default Poisson model and Gaussian models. 
 * Can now fit a hurdle model (See A. Owen (2017) The Application of Hurdle Models to Accurately Model 0-0 Draws in Predictive Models of Football Match Outcomes), but prediction methods are not yet implemented. 
 * Small bugfixes in the `score_predictions` function.
 * README now has an example of how to use the `score_predictions` function. 

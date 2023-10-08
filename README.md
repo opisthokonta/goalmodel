@@ -20,8 +20,14 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
-### Version 0.6.2 (development version)
+### Version 0.6.3 (development version)
 
+-   Fixed important bug that caused the defense parameters to be
+    slightly wrong in certain models. This affected mostly the defense
+    parameter for the first team in alphabetical order. In terms of
+    prediction error this affected the expected goals to be off by less
+    than 0.1 goals for games involving the first team. Models that were
+    affected were the default Poisson model and Gaussian models.
 -   Can now fit a hurdle model (See A. Owen (2017) The Application of
     Hurdle Models to Accurately Model 0-0 Draws in Predictive Models of
     Football Match Outcomes), but prediction methods are not yet
@@ -193,7 +199,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.03 seconds
+    ## Model sucsessfully fitted in 0.02 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -210,10 +216,10 @@ summary(gm_res)
     ## Arsenal                    0.36     0.03 
     ## Aston Villa               -0.33    -0.01 
     ## Blackburn Rovers          -0.04    -0.41 
-    ## Bolton Wanderers          -0.09    -0.39 
+    ## Bolton Wanderers          -0.09    -0.40 
     ## Chelsea                    0.23     0.10 
     ## Everton                   -0.04     0.26 
-    ## Fulham                    -0.07     0.02 
+    ## Fulham                    -0.07     0.01 
     ## Liverpool                 -0.10     0.26 
     ## Manchester City            0.57     0.54 
     ## Manchester United          0.53     0.41 
@@ -223,9 +229,9 @@ summary(gm_res)
     ## Stoke City                -0.36    -0.01 
     ## Sunderland                -0.14     0.12 
     ## Swansea City              -0.16     0.02 
-    ## Tottenham Hotspur          0.24     0.22 
-    ## West Bromwich Albion      -0.13     0.00 
-    ## Wigan Athletic            -0.19    -0.17 
+    ## Tottenham Hotspur          0.24     0.21 
+    ## West Bromwich Albion      -0.13    -0.00 
+    ## Wigan Athletic            -0.19    -0.18 
     ## Wolverhampton Wanderers   -0.22    -0.45 
     ## -------
     ## Intercept                  0.13 
@@ -250,7 +256,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 0.93 seconds
+    ## Model sucsessfully fitted in 1.00 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -281,7 +287,7 @@ summary(gm_res_dc)
     ## Sunderland                -0.14     0.12 
     ## Swansea City              -0.15     0.01 
     ## Tottenham Hotspur          0.24     0.21 
-    ## West Bromwich Albion      -0.14     0.00 
+    ## West Bromwich Albion      -0.13     0.00 
     ## Wigan Athletic            -0.19    -0.17 
     ## Wolverhampton Wanderers   -0.21    -0.46 
     ## -------
@@ -319,7 +325,7 @@ gm_res_rs <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_rs)
 ```
 
-    ## Model sucsessfully fitted in 0.56 seconds
+    ## Model sucsessfully fitted in 0.04 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -334,29 +340,29 @@ summary(gm_res_rs)
     ## 
     ## Team                      Attack   Defense
     ## Arsenal                    0.36     0.03 
-    ## Aston Villa               -0.33    -0.02 
-    ## Blackburn Rovers          -0.05    -0.42 
+    ## Aston Villa               -0.33    -0.01 
+    ## Blackburn Rovers          -0.04    -0.41 
     ## Bolton Wanderers          -0.09    -0.40 
     ## Chelsea                    0.23     0.10 
     ## Everton                   -0.04     0.26 
     ## Fulham                    -0.07     0.01 
     ## Liverpool                 -0.10     0.26 
-    ## Manchester City            0.58     0.54 
-    ## Manchester United          0.54     0.42 
-    ## Newcastle United           0.09     0.01 
+    ## Manchester City            0.57     0.54 
+    ## Manchester United          0.53     0.41 
+    ## Newcastle United           0.08     0.01 
     ## Norwich City               0.02    -0.25 
     ## Queens Park Rangers       -0.17    -0.24 
-    ## Stoke City                -0.36    -0.02 
+    ## Stoke City                -0.36    -0.01 
     ## Sunderland                -0.14     0.12 
     ## Swansea City              -0.16     0.02 
-    ## Tottenham Hotspur          0.24     0.22 
+    ## Tottenham Hotspur          0.24     0.21 
     ## West Bromwich Albion      -0.13    -0.00 
-    ## Wigan Athletic            -0.20    -0.18 
-    ## Wolverhampton Wanderers   -0.23    -0.46 
+    ## Wigan Athletic            -0.19    -0.18 
+    ## Wolverhampton Wanderers   -0.22    -0.45 
     ## -------
     ## Intercept                  0.13 
     ## Home field advantage       0.27 
-    ## Rue-Salvesen adj. (gamma)  0.02
+    ## Rue-Salvesen adj. (gamma)  0.00
 
 # Making predictions
 
@@ -374,9 +380,9 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
     ##               team1     team2    expg1     expg2
-    ## 1           Arsenal    Fulham 2.119358 1.0243004
-    ## 2 Manchester United   Chelsea 2.291612 0.9288743
-    ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
+    ## 1           Arsenal    Fulham 2.117914 1.0257180
+    ## 2 Manchester United   Chelsea 2.291611 0.9287833
+    ## 3  Bolton Wanderers Liverpool 1.069024 1.5088061
 
 We can also get the probabilities of the final outcome (team1 win, draw,
 team2 win) with the predict_result function.
@@ -386,9 +392,9 @@ predict_result(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE
 ```
 
     ##               team1     team2        p1        pd        p2
-    ## 1           Arsenal    Fulham 0.6121100 0.2266543 0.1612357
-    ## 2 Manchester United   Chelsea 0.6685366 0.2051625 0.1263009
-    ## 3  Bolton Wanderers Liverpool 0.2524546 0.2903231 0.4572222
+    ## 1           Arsenal    Fulham 0.6114897 0.2268230 0.1616873
+    ## 2 Manchester United   Chelsea 0.6685679 0.2051373 0.1262948
+    ## 3  Bolton Wanderers Liverpool 0.2522617 0.2903403 0.4573981
 
 Other functions are predict_goals which return matrices of the
 probabilities of each scoreline, and predict_ou for getting the
@@ -494,7 +500,7 @@ gm_res_nb <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 gm_res_nb$parameters$dispersion
 ```
 
-    ## [1] 4.517136e-05
+    ## [1] 4.539982e-05
 
 ## The Conway-Maxwell-Poisson model
 
@@ -588,7 +594,7 @@ gm_res_dc_2s$parameters$rho
 gm_res_dc$parameters$rho
 ```
 
-    ## [1] -0.1336961
+    ## [1] -0.1335741
 
 # Offset - Varying playing time
 
@@ -668,7 +674,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 0.96 seconds
+    ## Model sucsessfully fitted in 0.70 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
@@ -686,20 +692,20 @@ summary(gm_res_offset)
     ## Aston Villa               -0.30     0.01 
     ## Blackburn Rovers          -0.02    -0.39 
     ## Bolton Wanderers          -0.06    -0.38 
-    ## Chelsea                    0.26     0.12 
-    ## Everton                   -0.01     0.28 
+    ## Chelsea                    0.25     0.12 
+    ## Everton                   -0.01     0.27 
     ## Fulham                    -0.04     0.03 
     ## Liverpool                 -0.08     0.28 
-    ## Manchester City            0.60     0.55 
+    ## Manchester City            0.60     0.56 
     ## Manchester United          0.56     0.43 
-    ## Middlesbrough             -0.53    -0.40 
+    ## Middlesbrough             -0.52    -0.39 
     ## Newcastle United           0.11     0.03 
     ## Norwich City               0.05    -0.23 
     ## Queens Park Rangers       -0.14    -0.22 
     ## Stoke City                -0.33     0.01 
     ## Sunderland                -0.11     0.14 
     ## Swansea City              -0.13     0.04 
-    ## Tottenham Hotspur          0.27     0.23 
+    ## Tottenham Hotspur          0.26     0.23 
     ## West Bromwich Albion      -0.11     0.02 
     ## Wigan Athletic            -0.17    -0.16 
     ## Wolverhampton Wanderers   -0.20    -0.43 
@@ -795,7 +801,7 @@ sum(predictions_scores_default$log)
 sum(predictions_scores_dc$log)
 ```
 
-    ## [1] 4.336003
+    ## [1] 4.334922
 
 # Miscalaneous
 
@@ -845,9 +851,9 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
     ##               team1     team2    expg1     expg2
-    ## 1           Arsenal    Fulham 2.119358 1.0243004
-    ## 2 Manchester United   Chelsea 2.291612 0.9288743
-    ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
+    ## 1           Arsenal    Fulham 2.117914 1.0257180
+    ## 2 Manchester United   Chelsea 2.291611 0.9287833
+    ## 3  Bolton Wanderers Liverpool 1.069024 1.5088061
 
 You can also specify the Dixon-Coles parameter ρ (rho). Unfortunately it
 is not possible to extract both the two expected goals and rho, since
@@ -866,9 +872,9 @@ wdl_probs_dc
 ```
 
     ##               team1     team2        p1        pd        p2
-    ## 1           Arsenal    Fulham 0.6121100 0.2266543 0.1612357
-    ## 2 Manchester United   Chelsea 0.6685366 0.2051625 0.1263009
-    ## 3  Bolton Wanderers Liverpool 0.2524546 0.2903231 0.4572222
+    ## 1           Arsenal    Fulham 0.6114897 0.2268230 0.1616873
+    ## 2 Manchester United   Chelsea 0.6685679 0.2051373 0.1262948
+    ## 3  Bolton Wanderers Liverpool 0.2522617 0.2903403 0.4573981
 
 ``` r
 # Use the rho argument to specify rho.
@@ -879,9 +885,9 @@ expg_reveng_dc$expg
 ```
 
     ##          [,1]      [,2]
-    ## [1,] 2.110870 1.0181919
-    ## [2,] 2.283149 0.9231111
-    ## [3,] 1.063635 1.5016544
+    ## [1,] 2.109461 1.0195470
+    ## [2,] 2.282623 0.9229529
+    ## [3,] 1.062882 1.5016514
 
 ``` r
 # Compare with expected goals predictions from above.
@@ -889,9 +895,9 @@ predict_expg(gm_res_dc, team1=to_predict1, team2=to_predict2, return_df = TRUE)
 ```
 
     ##               team1     team2    expg1     expg2
-    ## 1           Arsenal    Fulham 2.119358 1.0243004
-    ## 2 Manchester United   Chelsea 2.291612 0.9288743
-    ## 3  Bolton Wanderers Liverpool 1.069974 1.5090408
+    ## 1           Arsenal    Fulham 2.117914 1.0257180
+    ## 2 Manchester United   Chelsea 2.291611 0.9287833
+    ## 3  Bolton Wanderers Liverpool 1.069024 1.5088061
 
 # Other packages
 
