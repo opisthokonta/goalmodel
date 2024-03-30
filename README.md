@@ -20,8 +20,10 @@ devtools::install_github("opisthokonta/goalmodel")
 
 # Whats new
 
-### Version 0.6.3 (development version)
+### Version 0.6.4 (development version)
 
+-   New function rho.ml to estimate the rho parameter of the Dixon-Coles
+    model.
 -   Fixed important bug that caused the defense parameters to be
     slightly wrong in certain models. This affected mostly the defense
     parameter for the first team in alphabetical order. In terms of
@@ -199,7 +201,7 @@ gm_res <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res)
 ```
 
-    ## Model sucsessfully fitted in 0.02 seconds
+    ## Model sucsessfully fitted in 0.01 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -256,7 +258,7 @@ gm_res_dc <- goalmodel(goals1 = england_2011$hgoal, goals2 = england_2011$vgoal,
 summary(gm_res_dc)
 ```
 
-    ## Model sucsessfully fitted in 1.00 seconds
+    ## Model sucsessfully fitted in 0.82 seconds
     ## 
     ## Number of matches           380 
     ## Number of teams              20 
@@ -674,7 +676,7 @@ gm_res_offset <- goalmodel(goals1 = england_2011_2$hgoal, goals2 = england_2011_
 summary(gm_res_offset)
 ```
 
-    ## Model sucsessfully fitted in 0.70 seconds
+    ## Model sucsessfully fitted in 0.54 seconds
     ## 
     ## Number of matches           381 
     ## Number of teams              21 
