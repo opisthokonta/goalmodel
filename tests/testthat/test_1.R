@@ -567,6 +567,15 @@ test_that('Dixon-Coles probability function', {
 })
 
 
+# Estimate Rho ----
+
+# Get the fitted values of the DC model fit.
+dc_preds <- predict_expg(gm_res_dc, team1 = england_2011$home, team2 = england_2011$visitor, return_df = TRUE)
+
+test_that('Rho estimation works', {
+  expect_true(abs(rho.ml(x1 = england_2011$hgoal, x2 = england_2011$vgoal, lambda1 = dc_preds$expg1, lambda2 = dc_preds$expg2) - gm_res_dc$parameters$rho) < 0.001)
+})
+
 
 
 # expg_from_probabilities ----

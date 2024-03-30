@@ -64,3 +64,53 @@ dDCP <- function(x1, x2, lambda1, lambda2, rho=NULL){
 
 }
 
+
+
+
+#' Estimate the Rho Parameter of the Dixon-Coles-Poisson Model
+#'
+#' Given the estimated goals (lambda1, lambda2) and observed goals (x1, x2), estimate the rho parameter of the
+#' the  Dixon-Coles-Poisson model.
+#'
+#' @param x1 non-negative integer.
+#' @param x2 non-negative integer.
+#' @param lambda1 vector of non-negative parameters of the Dixon-Coles-Poisson distribution.
+#' @param lambda2 vector of non-negative parameters of the Dixon-Coles-Poisson distribution.
+#' @param lower the lower bound for rho
+#' @param upper the upper bound for rho
+#'
+#' @section References:
+#' \itemize{
+#'  \item{Mark J.  Dixon & Stuart G. Coles (1997) Modelling Association Football Scores and Inefficiencies in the Football Betting Market }
+#' }
+#'
+#' @export
+rho.ml <- function(x1, x2, lambda1, lambda2, lower = -0.5, upper = 0.5){
+
+
+  # Define negativ log-likelihood function for RHO.
+  obj_func <- function(par, x1, x2, lambda1, lambda2){
+    sum(log(dDCP(x1 = x1, x2 = x2, lambda1 = lambda1, lambda2 = lambda2, rho = par)))*-1
+  }
+
+
+  # Find the maximum likelihood.
+  optim_res <- stats::optim(par = 0.0, fn = obj_func,
+                            x1 = x1,
+                            x2 = x2,
+                            lambda1 = lambda1,
+                            lambda2 = lambda2,
+                            method='Brent', lower = lower, upper = upper)
+
+  if (optim_res$convergence != 0){
+    warning('Did not converge (optim). Parameter estimates are unreliable.')
+  }
+
+
+  return(optim_res$par)
+
+}
+
+
+
+
